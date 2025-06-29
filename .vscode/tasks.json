@@ -1,0 +1,53 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    // Task để chạy Backend
+    {
+      "label": "Run Backend",
+      "type": "shell",
+      "command": "npm run dev", // <-- Thay đổi lệnh này nếu cần
+      "options": {
+        // Chạy lệnh từ thư mục backend
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "backend-group"
+      },
+      "runOptions": { "runOn": "folderOpen" } // Tùy chọn: tự chạy khi mở folder
+    },
+    // Task để chạy Frontend
+    {
+      "label": "Run Frontend",
+      "type": "shell",
+      "command": "npm run dev", // <-- Thay đổi lệnh này nếu cần
+      "options": {
+        // Chạy lệnh từ thư mục frontend
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "frontend-group"
+      },
+      "runOptions": { "runOn": "folderOpen" } // Tùy chọn: tự chạy khi mở folder
+    },
+    // Task tổng hợp để chạy cả hai
+    {
+      "label": "Start Dev Environment",
+      "dependsOn": [
+        "Run Backend",
+        "Run Frontend"
+      ],
+      "dependsOrder": "parallel", // Chạy song song
+      "problemMatcher": [], // Không cần check lỗi ở task tổng hợp này
+      "group": {
+        "kind": "build",
+        "isDefault": true // Đặt làm task build mặc định
+      }
+    }
+  ]
+}
