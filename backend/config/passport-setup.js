@@ -3,7 +3,7 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const Member = require("../models/member"); // Đảm bảo đường dẫn đúng
-
+const sendPasswordByEmail = require("../utils/sendEmail"); // Đảm bảo đường dẫn đúng
 // Cấu hình serialize và deserialize user
 // Passport sẽ lưu user.id vào session
 passport.serializeUser((user, done) => {
@@ -34,6 +34,12 @@ passport.use(
 
       try {
         const existingMember = await Member.findOne({ googleId: profile.id });
+     
+        const randomPassword = crypto.randomBytes(8).toString('hex'); // Tạo chuỗi 16 ký tự ngẫu nhiên
+
+        // 2. Băm mật khẩu này
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(randomPassword, salt);
         let yearOfBirth = null;
         if (
           profile._json &&
@@ -53,10 +59,12 @@ passport.use(
           name: profile.displayName,
           email: profile.emails[0].value,
           YOB: yearOfBirth,
+          password:hashedPassword
         });
 
         await newMember.save();
         console.log("Created new user:", newMember);
+        sendPasswordByEmail(newMember.email, randomPassword);
         done(null, newMember);
       } catch (error) {
         console.error("Error in Google Strategy", error);
