@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -10,6 +9,18 @@ const GoogleLoginButton = () => {
       title: "Đăng nhập Google",
       description: "Tính năng đăng nhập Google sẽ được tích hợp sớm!",
     });
+    // window.location.href = "http://localhost:3000/api/auth/google";
+    const googleCallbackUrl = import.meta.env.VITE_GOOGLE_CALLBACK_URL;
+    console.log("Google Callback URL:", googleCallbackUrl);
+    if (googleCallbackUrl) {
+      window.location.href = googleCallbackUrl;
+    } else {
+      toast({
+        title: "Lỗi",
+        description: "Google callback URL chưa được cấu hình.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

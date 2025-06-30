@@ -1,48 +1,95 @@
-
-import { useState } from "react";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Separator } from "../components/ui/separator";
-import { useToast } from "../hooks/use-toast";
+import { useState, useEffect } from "react";
+import { Button } from "@components/ui/button";
+import { Input } from "@components/ui/input";
+import { Label } from "@components/ui/label";
+import { Separator } from "@components/ui/separator";
+import axios from "axios";
 import GoogleLoginButton from "./GoogleButton";
+import { toast } from "sonner";
 
-const LoginForm = () => {
-  const [email, setEmail] = useState("");
+const LoginForm: React.FC = () => {
+  const [membername, setMemberName] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get("access_token");
+    const refreshToken = params.get("refresh_token");
+
+    if (accessToken && refreshToken) {
+      // Store tokens and user info from Google login
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+
+      toast.success("Đăng nhập thành công!", {
+        description: "Chào mừng bạn đã trở lại.",
+      });
+      // Clean the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      // Optional: Redirect to a dashboard or home page
+      // window.location.href = '/dashboard';
+    }
+  }, [toast]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      toast({
-        title: "Đăng nhập thành công!",
-        description: `Chào mừng bạn trở lại, ${email}`,
+
+    try {
+      // Use axios to send a POST request to the backend on port 3000.
+      const response = await axios.post("http://localhost:3000/api/auth", {
+        membername,
+        password,
       });
+
+      // With axios, the response data is in the `data` property.
+      const data = response.data;
+
+      // --- Handle Successful Login ---
+      // Store tokens and user data in localStorage
+      localStorage.setItem("accessToken", data.access_token);
+      localStorage.setItem("refreshToken", data.refresh_token);
+      localStorage.setItem("user", JSON.stringify(data.member));
+      toast.success("Đăng nhập thành công!", {
+        description: `Chào mừng bạn trở lại, ${data.member.name || membername}`,
+      });
+
+      // Optional: Redirect user to another page after successful login
+      // For example: window.location.href = '/dashboard';
+    } catch (error) {
+      // --- Handle Login Error ---
+      // axios places the error response in `error.response`.
+      const message =
+        error.response?.data?.message || error.message || "Đã có lỗi xảy ra.";
+      toast({
+        title: "Đăng nhập thất bại",
+        description: message,
+        // In a real shadcn/ui setup, you might have a 'destructive' variant
+        // variant: "destructive",
+      });
+    } finally {
+      // Ensure loading state is turned off after the API call completes
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
     <div className="space-y-4">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Membername</Label>
           <Input
-            id="email"
-            type="email"
+            id="membername"
+            type="text"
             placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={membername}
+            onChange={(e) => setMemberName(e.target.value)}
             required
             className="transition-all duration-300 focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="password">Mật khẩu</Label>
           <Input
@@ -55,27 +102,30 @@ const LoginForm = () => {
             className="transition-all duration-300 focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
-        <Button 
-          type="submit" 
+
+        <Button
+          type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 transition-all duration-300 transform hover:scale-105"
           disabled={isLoading}
         >
           {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
         </Button>
       </form>
-      
+
       <div className="relative">
         <Separator className="my-4" />
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="bg-white px-2 text-sm text-gray-500">Hoặc</span>
         </div>
       </div>
-      
+
       <GoogleLoginButton />
-      
+
       <div className="text-center text-sm text-gray-600">
-        <a href="#" className="hover:text-blue-600 transition-colors duration-300">
+        <a
+          href="#"
+          className="hover:text-blue-600 transition-colors duration-300"
+        >
           Quên mật khẩu?
         </a>
       </div>

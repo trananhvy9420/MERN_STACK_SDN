@@ -3,7 +3,7 @@
 const express = require("express");
 const authRoute = express.Router();
 const authController = require("../src/controllers/auth.controller");
-const passport = require("passport")
+const passport = require("passport");
 const jwt = require("jsonwebtoken");
 
 const {
@@ -41,7 +41,7 @@ authRoute.get(
 authRoute.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "/auth?form=login",
+    failureRedirect: "/",
     session: false,
   }),
   (req, res) => {
@@ -54,12 +54,11 @@ authRoute.get(
       isAdmin: req.user.isAdmin,
     };
     const { accessToken, refreshToken } = generateTokens(payload);
-
+    req.session.accessToken = accessToken;
+    req.session.refreshToken = refreshToken;
     // DÒNG THAY ĐỔI DUY NHẤT LÀ ĐÂY
     // Chuyển hướng về trang /auth thay vì /
-    res.redirect(
-      `/auth?access_token=${accessToken}&refresh_token=${refreshToken}&isAdmin=${payload.isAdmin}`
-    );
+    res.redirect("http://localhost:5173/dashboard");
   }
 );
 

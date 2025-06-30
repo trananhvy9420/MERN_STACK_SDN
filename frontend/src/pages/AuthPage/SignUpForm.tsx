@@ -1,10 +1,9 @@
-
 import { useState } from "react";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Separator } from "../components/ui/separator";
-import { useToast } from "../hooks/use-toast";
+import { Button } from "@components/ui/button";
+import { Input } from "@components/ui/input";
+import { Label } from "@components/ui/label";
+import { Separator } from "@components/ui/separator";
+import { useToast } from "@hooks/use-toast";
 import GoogleLoginButton from "./GoogleButton";
 
 const SignUpForm = () => {
@@ -12,7 +11,7 @@ const SignUpForm = () => {
     fullName: "",
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -20,24 +19,24 @@ const SignUpForm = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Lỗi",
         description: "Mật khẩu xác nhận không khớp",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       toast({
@@ -64,7 +63,7 @@ const SignUpForm = () => {
             className="transition-all duration-300 focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -78,7 +77,7 @@ const SignUpForm = () => {
             className="transition-all duration-300 focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="password">Mật khẩu</Label>
           <Input
@@ -92,7 +91,7 @@ const SignUpForm = () => {
             className="transition-all duration-300 focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
           <Input
@@ -106,25 +105,25 @@ const SignUpForm = () => {
             className="transition-all duration-300 focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
-        <Button 
-          type="submit" 
+
+        <Button
+          type="submit"
           className="w-full bg-green-600 hover:bg-green-700 transition-all duration-300 transform hover:scale-105"
           disabled={isLoading}
         >
           {isLoading ? "Đang đăng ký..." : "Tạo tài khoản"}
         </Button>
       </form>
-      
+
       <div className="relative">
         <Separator className="my-4" />
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="bg-white px-2 text-sm text-gray-500">Hoặc</span>
         </div>
       </div>
-      
+
       <GoogleLoginButton />
-      
+
       <div className="text-center text-xs text-gray-500">
         Bằng cách đăng ký, bạn đồng ý với{" "}
         <a href="#" className="text-blue-600 hover:underline">
