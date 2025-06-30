@@ -58,7 +58,6 @@ const signUp = async (req, res) => {
   const { membername, password, name, YOB, email } = req.body;
   try {
     const existingMember = await Member.findOne({ membername: membername });
-
     if (existingMember) {
       return res.status(400).json({ message: "Username is already existed" });
     }
@@ -87,6 +86,7 @@ const signUp = async (req, res) => {
     });
   } catch (error) {
     console.error("Registration Error: " + error);
+    console.error("Login Error: ", error);
     return res
       .status(500)
       .json({ message: "An error occurred during registration." });
