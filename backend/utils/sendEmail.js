@@ -9,20 +9,18 @@ const nodemailer = require("nodemailer");
  */
 const sendPasswordByEmail = async (email, password) => {
   try {
-    // 1. Tạo transporter object sử dụng dịch vụ Gmail
-    // Đảm bảo rằng bạn đã thiết lập EMAIL_USER và EMAIL_PASS trong file .env
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER, // Email của bạn
-        pass: process.env.EMAIL_PASS, // Mật khẩu ứng dụng đã tạo
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     // 2. Cấu hình nội dung email
     const mailOptions = {
       from: `"FIFA WORLD CUP" <${process.env.EMAIL_USER}>`,
-      to: email, // Gửi đến email của người dùng mới
+      to: email,
       subject: "Chào mừng! Đây là mật khẩu đăng nhập của bạn",
       html: `
         <h1>Chào mừng bạn đã đến với dịch vụ của chúng tôi!</h1>

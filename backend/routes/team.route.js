@@ -27,19 +27,20 @@ teamRoute.route("/").get(
   teamController.findAllTeam
 );
 
-teamRoute.route("/").post(
-  [
-    body("teamName")
-      .trim()
-      .notEmpty()
-      .withMessage("Team Name must be required"),
-  ],
-
-  protectedRoute,
-  isAdmin,
-  validate,
-  teamController.createTeam
-);
+teamRoute
+  .route("/")
+  .post(
+    [
+      body("teamName")
+        .trim()
+        .notEmpty()
+        .withMessage("Team Name must be required"),
+    ],
+    protectedRoute,
+    isAdmin,
+    validate,
+    teamController.createTeam
+  );
 teamRoute
   .route("/:id")
   .get(

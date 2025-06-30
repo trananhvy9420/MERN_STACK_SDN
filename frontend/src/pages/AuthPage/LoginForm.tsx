@@ -6,12 +6,12 @@ import { Separator } from "@components/ui/separator";
 import axios from "axios";
 import GoogleLoginButton from "./GoogleButton";
 import { toast } from "sonner";
-
+import { useNavigate } from "react-router-dom";
 const LoginForm: React.FC = () => {
   const [membername, setMemberName] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const accessToken = params.get("access_token");
@@ -19,8 +19,8 @@ const LoginForm: React.FC = () => {
 
     if (accessToken && refreshToken) {
       // Store tokens and user info from Google login
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
 
       toast.success("Đăng nhập thành công!", {
         description: "Chào mừng bạn đã trở lại.",
@@ -28,8 +28,7 @@ const LoginForm: React.FC = () => {
       // Clean the URL
       window.history.replaceState({}, document.title, window.location.pathname);
 
-      // Optional: Redirect to a dashboard or home page
-      // window.location.href = '/dashboard';
+      navigate("/");
     }
   }, [toast]);
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,13 +47,13 @@ const LoginForm: React.FC = () => {
 
       // --- Handle Successful Login ---
       // Store tokens and user data in localStorage
-      localStorage.setItem("accessToken", data.access_token);
-      localStorage.setItem("refreshToken", data.refresh_token);
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("refresh_token", data.refresh_token);
       localStorage.setItem("user", JSON.stringify(data.member));
       toast.success("Đăng nhập thành công!", {
         description: `Chào mừng bạn trở lại, ${data.member.name || membername}`,
       });
-
+      navigate("/");
       // Optional: Redirect user to another page after successful login
       // For example: window.location.href = '/dashboard';
     } catch (error) {

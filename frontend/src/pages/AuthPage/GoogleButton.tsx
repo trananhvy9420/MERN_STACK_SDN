@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 const GoogleLoginButton = () => {
