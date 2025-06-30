@@ -58,7 +58,6 @@ const fetchAllMember = async (req, res) => {
 const updateProfile = async (req, res) => {
   const memberId = req.member.id;
   const { name, YOB } = req.body;
-
   try {
     const updatedMember = await Member.findByIdAndUpdate(memberId, {
       name: name,
@@ -96,12 +95,17 @@ const updatePassword = async (req, res) => {
         .status(400)
         .json({ message: "Mật khẩu hiện tại không chính xác." });
     }
+    const isSamePassword = await bcrypt.compare(newPassword, member.password);
+    if (isSamePassword) {
+      return res
+        .status(400)
+        .json({ message: "Mật khẩu mới không được giống mật khẩu cũ." });
+    }
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
-
+  
     member.password = hashedPassword;
     await member.save();
-
     return res.status(200).json({ message: "Password updated successfully." });
   } catch (error) {
     console.error("Update Password Error: " + error);

@@ -5,7 +5,7 @@
     {
       "label": "Run Backend",
       "type": "shell",
-      "command": "npm run dev", // <-- Thay đổi lệnh này nếu cần
+      "command": "npm start", // <-- Thay đổi lệnh này nếu cần
       "options": {
         // Chạy lệnh từ thư mục backend
         "cwd": "${workspaceFolder}/backend"
@@ -16,7 +16,7 @@
         "panel": "new",
         "group": "backend-group"
       },
-      "runOptions": { "runOn": "folderOpen" } // Tùy chọn: tự chạy khi mở folder
+    
     },
     // Task để chạy Frontend
     {
@@ -33,7 +33,7 @@
         "panel": "new",
         "group": "frontend-group"
       },
-      "runOptions": { "runOn": "folderOpen" } // Tùy chọn: tự chạy khi mở folder
+
     },
     // Task tổng hợp để chạy cả hai
     {
