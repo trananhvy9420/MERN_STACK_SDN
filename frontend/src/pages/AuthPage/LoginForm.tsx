@@ -46,6 +46,7 @@ const LoginForm: React.FC = () => {
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("refresh_token", data.refresh_token);
         localStorage.setItem("user", JSON.stringify(data.member));
+        localStorage.setItem("isAdmin", data.member.isAdmin);
         toast.success("Đăng nhập thành công!", {
           description: `Chào mừng bạn trở lại, ${
             data.member.name || membername

@@ -269,7 +269,8 @@ const PlayerDetailPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newComment, setNewComment] = useState({ rating: "5", content: "" });
   const isLoggedIn = !!localStorage.getItem("access_token");
-
+  const user = localStorage.getItem("user");
+  const isAdmin = localStorage.getItem("isAdmin");
   const fetchData = useCallback(async () => {
     try {
       if (!loading) setLoading(true); // Ensure loading is true on re-fetch
@@ -360,7 +361,7 @@ const PlayerDetailPage = () => {
         <PlayerInfoCard player={player} />
 
         {/* LOGIC CHÍNH: Chỉ hiển thị phần bình luận nếu đã đăng nhập */}
-        {isLoggedIn && (
+        {isLoggedIn && isAdmin === "true" && (
           <CommentSection
             comments={comments}
             onCommentSubmit={handleCommentSubmit}
