@@ -14,7 +14,7 @@ import { Skeleton } from "@components/ui/skeleton";
 import { Star, Shield, DollarSign } from "lucide-react"; // Thêm icons
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar"; // Sử dụng Avatar
 
-const PlayerCard = ({ player }: { player: any }) => {
+const PlayerCard: React.FC = ({ player }: { player: any }) => {
   return (
     <Card className="w-[300px] m-4 flex flex-col rounded-2xl shadow-lg bg-white transition-transform duration-300 ease-in-out hover:scale-[1.03] hover:shadow-2xl overflow-hidden">
       <CardHeader className="flex flex-col items-center p-4 text-center">
@@ -75,7 +75,6 @@ const PlayerCard = ({ player }: { player: any }) => {
   );
 };
 
-// --- SKELETON ĐÃ ĐƯỢC CẬP NHẬT ---
 export const PlayerCardSkeleton = () => {
   return (
     <Card className="w-[300px] m-4 rounded-2xl shadow-lg">

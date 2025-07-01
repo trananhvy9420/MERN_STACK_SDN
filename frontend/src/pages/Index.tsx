@@ -6,6 +6,7 @@ import Footer from "../pages/Footer";
 import PlayerCard, { PlayerCardSkeleton } from "../pages/PlayerCard";
 import AppPagination from "../pages/Pagination";
 import { getPlayers } from "../services/api"; // Giữ nguyên service từ câu trả lời trước
+import PlayerListPage from "./PlayerListPage";
 
 const PlayersPage = () => {
   const [players, setPlayers] = useState([]);
@@ -52,8 +53,8 @@ const PlayersPage = () => {
         </h1>
 
         {/* Phần hiển thị danh sách */}
-        <div className="flex flex-wrap justify-center gap-4">
-          {loading ? (
+        <div className="flex flex-wrap justify-center gap-4 bg-background">
+          {/* {loading ? (
             // Hiển thị Skeleton loading
             Array.from({ length: 8 }).map((_, index) => (
               <PlayerCardSkeleton key={index} />
@@ -66,18 +67,19 @@ const PlayersPage = () => {
           ) : (
             // Trường hợp không có dữ liệu
             <p>Không tìm thấy cầu thủ nào.</p>
-          )}
+          )} */}
+          <PlayerListPage />
         </div>
 
         {/* Phần phân trang */}
-        <div className="mt-8">
+        {/* <div className="mt-8">
           {pagination && !loading && (
             <AppPagination
               pagination={pagination}
               onPageChange={handlePageChange}
             />
           )}
-        </div>
+        </div> */}
       </main>
       <Footer />
     </div>

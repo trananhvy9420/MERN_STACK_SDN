@@ -15,7 +15,7 @@ const AppPagination = ({ pagination, onPageChange }) => {
   const { currentPage, totalPages } = pagination;
 
   // Không hiển thị component nếu chỉ có 1 trang hoặc ít hơn
-  if (totalPages <= 1) {
+  if (totalPages < 1) {
     return null;
   }
 
@@ -43,12 +43,9 @@ const AppPagination = ({ pagination, onPageChange }) => {
     }
   };
 
-  // --- Logic để tạo ra các mục phân trang (số trang và dấu '...') ---
   const generatePaginationItems = () => {
-    const siblingCount = 1; // Số lượng trang hiển thị ở mỗi bên của trang hiện tại
+    const siblingCount = 1;
     const pageNumbers = new Set();
-
-    // Luôn thêm trang đầu và trang cuối
     pageNumbers.add(1);
     pageNumbers.add(totalPages);
 

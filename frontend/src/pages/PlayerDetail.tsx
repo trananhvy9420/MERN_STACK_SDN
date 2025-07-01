@@ -158,19 +158,17 @@ const CommentForm = ({ onSubmit, isSubmitting, newComment, setNewComment }) => (
             }
             disabled={isSubmitting}
           >
-            <SelectTrigger>
+            <SelectTrigger className="!bg-background">
               <SelectValue placeholder="Chọn mức độ đánh giá" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">⭐️⭐️⭐️⭐️⭐️ Rất xuất sắc</SelectItem>
-              <SelectItem value="4">⭐️⭐️⭐️⭐️ Tuyệt vời</SelectItem>
+            <SelectContent className="bg-white">
               <SelectItem value="3">⭐️⭐️⭐️ Tạm được</SelectItem>
               <SelectItem value="2">⭐️⭐️ Cần cải thiện</SelectItem>
               <SelectItem value="1">⭐️ Yếu</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <div>
+        <div className="mt-5">
           <Label htmlFor="content" className="font-semibold">
             Nội dung
           </Label>

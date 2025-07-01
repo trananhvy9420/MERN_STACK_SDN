@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@components/ui/sheet";
 import { useNavigate } from "react-router-dom";
-import { LogIn, UserPlus, Menu, Mountain } from "lucide-react"; // Thêm icon Menu và Mountain
+import { LogIn, UserPlus, Menu, Mountain, LogOut, UserPen } from "lucide-react"; // Thêm icon Menu và Mountain
 
 // Tạo một component Link để tái sử dụng, giúp code sạch hơn
 const NavLink = ({
@@ -23,6 +23,7 @@ const NavLink = ({
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
+  const token = localStorage.getItem("access_token");
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -41,17 +42,49 @@ const Header: React.FC = () => {
 
         {/* Nhóm bên phải: Nút actions cho desktop */}
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" onClick={() => navigate("/form")}>
-            <LogIn className="mr-2 h-4 w-4" />
-            Login
-          </Button>
-          <Button
-            className="font-semibold bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out"
-            onClick={() => navigate("/register")}
-          >
-            Register
-            <UserPlus className="ml-2 h-4 w-4" />
-          </Button>
+          {token ? (
+            // Nếu có token (đã đăng nhập)
+            <>
+              <Button
+                className="font-semibold bg-gradient-to-r from-green-500 to-emerald-400 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out"
+                onClick={() => navigate("/dashboard")}
+              >
+                Dashboard
+              </Button>
+              <Button
+                className="font-semibold  text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out"
+                onClick={() => navigate("/profile")}
+              >
+                <UserPen className="mr-2 h-4 w-4" />
+                Profile
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  localStorage.clear();
+                  navigate("/"); // hoặc navigate("/login") tùy logic bạn
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </>
+          ) : (
+            // Nếu chưa đăng nhập
+            <>
+              <Button variant="ghost" onClick={() => navigate("/form")}>
+                <LogIn className="mr-2 h-4 w-4" />
+                Login
+              </Button>
+              <Button
+                className="font-semibold bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out"
+                onClick={() => navigate("/register")}
+              >
+                Register
+                <UserPlus className="ml-2 h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Menu cho di động (Hamburger Menu) */}

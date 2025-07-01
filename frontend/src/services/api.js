@@ -35,8 +35,11 @@ apiClient.interceptors.request.use(
  * @param {number} limit - Số lượng cầu thủ mỗi trang.
  * @returns {Promise} - Promise chứa dữ liệu từ API.
  */
-export const getPlayers = (page = 1, limit = 8) => {
-  return apiClient.get(`/player/getAll?page=${page}&limit=${limit}`);
+export const getPlayers = (params) => {
+  // Tạo một đối tượng URLSearchParams để dễ dàng xây dựng query string
+  // Nó sẽ tự động bỏ qua các giá trị undefined hoặc null
+  const queryParams = new URLSearchParams(params).toString();
+  return apiClient.get(`/player/getAll?${queryParams}`);
 };
 
 /**
@@ -56,8 +59,25 @@ export const getPlayerById = (id) => {
 export const getPlayerComments = (playerId) => {
   return apiClient.get(`/player/${playerId}/comment`);
 };
+export const getTeams = () => {
+  // Bạn cần tạo endpoint này ở backend
+  return apiClient.get("/team/"); // Giả sử endpoint là '/team/getAll'
+};
+export const createPlayer = (playerData) => {
+  return apiClient.post('/player', playerData);
+};
+
+// Cập nhật cầu thủ
+export const updatePlayer = (playerId, playerData) => {
+  return apiClient.put(`/player/${playerId}`, playerData);
+};
+
+// Xóa (vô hiệu hóa) cầu thủ
+export const deletePlayer = (playerId) => {
+  return apiClient.delete(`/player/${playerId}/delete`);
 
 /**
+ * 
  * Thêm một bình luận mới cho cầu thủ.
  * @param {string} playerId - ID của cầu thủ.
  * @param {object} commentData - Dữ liệu bình luận, gồm { rating, content }.

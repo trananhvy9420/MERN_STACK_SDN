@@ -10,6 +10,7 @@ import Dashboard from "./pages/Admin/Dashboard";
 import Login from "./pages/AuthPage/LoginForm";
 import Register from "./pages/AuthPage/SignUpForm";
 import PlayerDetailPage from "./pages/PlayerDetail";
+import PlayerListPage from "./pages/PlayerListPage";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -20,9 +21,10 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/players" element={<PlayerListPage />} />
           <Route path="/form" element={<Form />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboardadmin" element={<Dashboard />} />
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

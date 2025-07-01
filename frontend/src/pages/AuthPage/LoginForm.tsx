@@ -21,7 +21,6 @@ const LoginForm: React.FC = () => {
       // Store tokens and user info from Google login
       localStorage.setItem("access_token", accessToken);
       localStorage.setItem("refresh_token", refreshToken);
-
       toast.success("Đăng nhập thành công!", {
         description: "Chào mừng bạn đã trở lại.",
       });
@@ -47,28 +46,35 @@ const LoginForm: React.FC = () => {
 
       // --- Handle Successful Login ---
       // Store tokens and user data in localStorage
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("refresh_token", data.refresh_token);
-      localStorage.setItem("user", JSON.stringify(data.member));
-      toast.success("Đăng nhập thành công!", {
-        description: `Chào mừng bạn trở lại, ${data.member.name || membername}`,
-      });
-      navigate("/");
-      // Optional: Redirect user to another page after successful login
-      // For example: window.location.href = '/dashboard';
+      if (data.member.isAdmin === true) {
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("refresh_token", data.refresh_token);
+        localStorage.setItem("user", JSON.stringify(data.member));
+        toast.success("Đăng nhập thành công!", {
+          description: `Chào mừng bạn trở lại, ${
+            data.member.name || membername
+          }`,
+        });
+        navigate("/dashboardadmin");
+      } else {
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("refresh_token", data.refresh_token);
+        localStorage.setItem("user", JSON.stringify(data.member));
+        toast.success("Đăng nhập thành công!", {
+          description: `Chào mừng bạn trở lại, ${
+            data.member.name || membername
+          }`,
+        });
+        navigate("/");
+      }
     } catch (error) {
-      // --- Handle Login Error ---
-      // axios places the error response in `error.response`.
       const message =
         error.response?.data?.message || error.message || "Đã có lỗi xảy ra.";
-      toast({
-        title: "Đăng nhập thất bại",
+      // SỬA LẠI THÀNH toast.error()
+      toast.error("Đăng nhập thất bại", {
         description: message,
-        // In a real shadcn/ui setup, you might have a 'destructive' variant
-        // variant: "destructive",
       });
     } finally {
-      // Ensure loading state is turned off after the API call completes
       setIsLoading(false);
     }
   };
