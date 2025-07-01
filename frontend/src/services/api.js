@@ -129,3 +129,9 @@ export const updateTeam = (teamId, teamData) => {
 export const deleteTeam = (teamId) => {
   return apiClient.delete(`/team/delete/${teamId}`);
 };
+export const signUp = (userData) => {
+  return apiClient.post(`/auth/register`, userData);
+};
+export const signIn = (userData) => {
+  return apiClient.post(`/auth/`, userData);
+};

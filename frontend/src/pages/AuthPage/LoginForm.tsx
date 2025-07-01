@@ -16,7 +16,6 @@ const LoginForm: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const accessToken = params.get("access_token");
     const refreshToken = params.get("refresh_token");
-
     if (accessToken && refreshToken) {
       // Store tokens and user info from Google login
       localStorage.setItem("access_token", accessToken);
@@ -26,7 +25,6 @@ const LoginForm: React.FC = () => {
       });
       // Clean the URL
       window.history.replaceState({}, document.title, window.location.pathname);
-
       navigate("/");
     }
   }, [toast]);
@@ -40,10 +38,8 @@ const LoginForm: React.FC = () => {
         membername,
         password,
       });
-
       // With axios, the response data is in the `data` property.
       const data = response.data;
-
       // --- Handle Successful Login ---
       // Store tokens and user data in localStorage
       if (data.member.isAdmin === true) {

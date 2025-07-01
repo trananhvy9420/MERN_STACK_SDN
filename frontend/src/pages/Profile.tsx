@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-
+import { ArrowLeft } from "lucide-react";
 // Import các component đã cài đặt từ shadcn/ui
 import { Button } from "@components/ui/button";
 import {
@@ -18,6 +18,7 @@ import {
   updateProfile,
   updatePassword,
 } from "../services/api";
+import { useParams, Link } from "react-router-dom";
 import { toast } from "sonner";
 // ========================================================================
 // PHẦN API - Để khắc phục lỗi import, tôi đã đặt trực tiếp vào đây.
@@ -135,35 +136,51 @@ const Profile = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-6">Tài khoản của tôi</h1>
-      {message.text && (
-        <div
-          className={`p-4 mb-4 rounded-md text-sm ${
-            message.type === "error"
-              ? "bg-destructive/20 text-destructive-foreground"
-              : "bg-emerald-500/20 text-emerald-700"
-          }`}
+    <div>
+      <div className="flex-grow container mx-auto px-4 py-8 md:py-5">
+        <Button
+          asChild
+          variant="ghost"
+          className="mb-6 text-gray-600 hover:text-gray-900"
         >
-          {message.text}
-        </div>
-      )}
-      <Tabs defaultValue="profile">
-        <TabsList>
-          <TabsTrigger value="profile">Hồ sơ</TabsTrigger>
-          <TabsTrigger value="password">Mật khẩu</TabsTrigger>
-        </TabsList>
-        <TabsContent value="profile">
-          <ProfileForm
-            profile={profile}
-            onSave={handleUpdateProfile}
-            isLoading={isUpdating}
-          />
-        </TabsContent>
-        <TabsContent value="password">
-          <PasswordForm onSave={handleUpdatePassword} isLoading={isUpdating} />
-        </TabsContent>
-      </Tabs>
+          <Link to="/">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại danh sách
+          </Link>
+        </Button>
+      </div>
+      <div className="container mx-auto p-4 md:p-8 max-w-2xl">
+        <h1 className="text-3xl font-bold mb-6">Tài khoản của tôi</h1>
+        {message.text && (
+          <div
+            className={`p-4 mb-4 rounded-md text-sm ${
+              message.type === "error"
+                ? "bg-destructive/20 text-destructive-foreground"
+                : "bg-emerald-500/20 text-emerald-700"
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
+        <Tabs defaultValue="profile">
+          <TabsList>
+            <TabsTrigger value="profile">Hồ sơ</TabsTrigger>
+            <TabsTrigger value="password">Mật khẩu</TabsTrigger>
+          </TabsList>
+          <TabsContent value="profile">
+            <ProfileForm
+              profile={profile}
+              onSave={handleUpdateProfile}
+              isLoading={isUpdating}
+            />
+          </TabsContent>
+          <TabsContent value="password">
+            <PasswordForm
+              onSave={handleUpdatePassword}
+              isLoading={isUpdating}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

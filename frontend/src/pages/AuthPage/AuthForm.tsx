@@ -5,7 +5,9 @@ import LoginForm from "./LoginForm";
 import SignUpForm from "./SignUpForm";
 
 const AuthForm = () => {
-  const [activeTab, setActiveTab] = useState("login");
+  const initialTab =
+    localStorage.getItem("state") === "signup" ? "signup" : "login";
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   return (
     <Card className="w-full shadow-xl border-0 bg-white/80 backdrop-blur-sm">

@@ -27,6 +27,14 @@ const Header: React.FC = () => {
   const userString = localStorage.getItem("user");
   const user = userString ? JSON.parse(userString) : null;
   console.log(user);
+  const handleLogin = () => {
+    localStorage.setItem("state", "login");
+    navigate("/form");
+  };
+  const handleRegister = () => {
+    localStorage.setItem("state", "signup");
+    navigate("/form");
+  };
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -88,13 +96,13 @@ const Header: React.FC = () => {
           ) : (
             // Nếu chưa đăng nhập
             <>
-              <Button variant="ghost" onClick={() => navigate("/form")}>
+              <Button variant="ghost" onClick={() => handleLogin()}>
                 <LogIn className="mr-2 h-4 w-4" />
                 Login
               </Button>
               <Button
                 className="font-semibold bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out"
-                onClick={() => navigate("/register")}
+                onClick={() => handleRegister()}
               >
                 Register
                 <UserPlus className="ml-2 h-4 w-4" />
