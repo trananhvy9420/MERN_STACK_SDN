@@ -89,3 +89,24 @@ export const addComment = (playerId, commentData) => {
 
 // Bạn có thể thêm các hàm gọi API khác ở đây nếu cần
 // ví dụ: updateUser, deletePlayer,...
+export const fetchUserProfile = () => {
+  return apiClient.get("/member/me");
+};
+
+/**
+ * PUT /member/updateprofile
+ * Cập nhật tên và ngày sinh của người dùng.
+ * @param {object} profileData - Dữ liệu cần cập nhật, ví dụ: { name: 'Tên Mới', YOB: '2000-12-31' }
+ */
+export const updateProfile = (profileData) => {
+  return apiClient.put("/member/updateprofile", profileData);
+};
+
+/**
+ * PUT /member/updatepassword
+ * Cập nhật mật khẩu.
+ * @param {object} passwordData - Dữ liệu mật khẩu, ví dụ: { currentPassword: '...', newPassword: '...' }
+ */
+export const updatePassword = (passwordData) => {
+  return apiClient.put("/member/updatepassword", passwordData);
+};
