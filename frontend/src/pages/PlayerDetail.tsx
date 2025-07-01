@@ -361,7 +361,7 @@ const PlayerDetailPage = () => {
         <PlayerInfoCard player={player} />
 
         {/* LOGIC CHÍNH: Chỉ hiển thị phần bình luận nếu đã đăng nhập */}
-        {isLoggedIn && isAdmin === "true" && (
+        {isLoggedIn && isAdmin === "false" && (
           <CommentSection
             comments={comments}
             onCommentSubmit={handleCommentSubmit}
