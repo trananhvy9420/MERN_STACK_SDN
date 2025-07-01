@@ -162,7 +162,7 @@ const PlayerForm = ({ player, teams, open, onOpenChange, onSuccess }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-[525px] bg-white">
         <DialogHeader>
           <DialogTitle>
             {isEditMode ? "Chỉnh sửa Cầu thủ" : "Thêm Cầu thủ mới"}
@@ -403,7 +403,7 @@ const TablePlayer: React.FC = () => {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className="bg-white">
                         <DropdownMenuLabel>Hành động</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleEdit(player)}>
                           <Edit className="mr-2 h-4 w-4" />
