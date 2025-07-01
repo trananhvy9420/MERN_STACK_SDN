@@ -291,12 +291,39 @@ const deletePlayer = async (req, res) => {
       { disable: true },
       { new: true }
     );
-
     if (!updatedPlayer) {
       return res.status(404).json({ message: "Player not found" });
     }
+    // if (updatedPlayer.disable === true) {
+    //   return res.status(404).json({ message: "Đã disable" });
+    // }
     return res.status(200).json({
-      message: "Team disabled successfully",
+      message: "Player disabled successfully",
+      data: updatedPlayer,
+    });
+  } catch (error) {
+    console.error("Error disabling player: ", error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred while disabling the team." });
+  }
+};
+const activePlayer = async (req, res) => {
+  const id = req.params.playerId;
+  try {
+    const updatedPlayer = await Player.findByIdAndUpdate(
+      id,
+      { disable: false },
+      { new: true }
+    );
+    if (!updatedPlayer) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+    // if (updatedPlayer.disable === false) {
+    //   return res.status(404).json({ message: "Đã active" });
+    // }
+    return res.status(200).json({
+      message: "Player active successfully",
       data: updatedPlayer,
     });
   } catch (error) {
@@ -552,4 +579,5 @@ module.exports = {
   findAllPlayerIsCaptain,
   findAllPlayerInTeam,
   getPlayerStats,
+  activePlayer,
 };

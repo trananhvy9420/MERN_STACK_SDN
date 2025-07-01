@@ -66,6 +66,7 @@ import {
   updatePlayer,
   deletePlayer,
   getTeams,
+  activePlayer,
 } from "@services/api.js";
 import AppPagination from "@pages/Pagination"; // Component phân trang từ lần trước
 
@@ -231,7 +232,7 @@ const PlayerForm = ({ player, teams, open, onOpenChange, onSuccess }) => {
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Chọn một đội" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 {teams.map((team: Team) => (
                   <SelectItem key={team._id} value={team._id}>
                     {team.teamName}
@@ -276,7 +277,7 @@ const TablePlayer: React.FC = () => {
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [deletingPlayerId, setDeletingPlayerId] = useState<string | null>(null);
-
+  const [activingPlayerId, setActivingPlayerId] = useState<string | null>(null);
   const fetchPlayersData = useCallback(async (page = 1) => {
     setLoading(true);
     try {
@@ -319,6 +320,20 @@ const TablePlayer: React.FC = () => {
     setIsAlertOpen(true);
   };
 
+  const handleActiveRequest = async (playerId: string) => {
+    setActivingPlayerId(playerId);
+    if (!activingPlayerId) return;
+    try {
+      await activePlayer(activingPlayerId);
+      toast.success("Cầu thủ đã được active");
+      fetchPlayersData(pagination.currentPage);
+    } catch (error) {
+      toast.error("Active thất bại.");
+    } finally {
+      setIsAlertOpen(false);
+      setDeletingPlayerId(null);
+    }
+  };
   const confirmDelete = async () => {
     if (!deletingPlayerId) return;
     try {
@@ -414,7 +429,14 @@ const TablePlayer: React.FC = () => {
                           onClick={() => handleDeleteRequest(player._id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa
+                          Disable
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-green-600"
+                          onClick={() => handleActiveRequest(player._id)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Active
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

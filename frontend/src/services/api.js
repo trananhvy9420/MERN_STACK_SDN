@@ -76,6 +76,9 @@ export const updatePlayer = (playerId, playerData) => {
 export const deletePlayer = (playerId) => {
   return apiClient.delete(`/player/${playerId}/delete`);
 };
+export const activePlayer = (playerId) => {
+  return apiClient.post(`/player/${playerId}/active`);
+};
 /**
  *
  * Thêm một bình luận mới cho cầu thủ.

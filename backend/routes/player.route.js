@@ -138,6 +138,15 @@ playerRoute
   );
 
 playerRoute
+  .route("/:playerId/active")
+  .post(
+    [param("playerId").isMongoId().withMessage("Invalid Player ID format.")],
+    validate,
+    protectedRoute,
+    playerController.activePlayer
+  );
+
+playerRoute
   .route("/:playerId/:commentId/editComment")
   .post(
     [

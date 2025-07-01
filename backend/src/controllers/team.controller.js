@@ -6,10 +6,10 @@ const findAllTeam = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    const queryCondition = { disable: { $ne: true } };
+
     const [team, totalRecords] = await Promise.all([
-      Team.find(queryCondition).skip(skip).limit(limit),
-      Team.countDocuments(queryCondition),
+      Team.find().skip(skip).limit(limit),
+      Team.countDocuments(),
     ]);
     if (!team || team.length === 0) {
       return res.status(200).json({
