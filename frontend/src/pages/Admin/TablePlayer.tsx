@@ -1,7 +1,8 @@
 // src/pages/admin/Dashboard.tsx
-"use client"; // Sử dụng cho Next.js App Router
+"use client"; // Có thể bỏ nếu bạn chỉ dùng React thuần và không có cấu hình đặc biệt cho Next.js
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom"; // Import these hooks
 import {
   Table,
   TableBody,
@@ -56,6 +57,7 @@ import {
   XCircle,
   Trash2,
   Edit,
+  Loader,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -68,9 +70,8 @@ import {
   getTeams,
   activePlayer,
 } from "@services/api.js";
-import AppPagination from "@pages/Pagination"; // Component phân trang từ lần trước
+import AppPagination from "@pages/Pagination";
 
-// Định nghĩa kiểu dữ liệu cho cầu thủ (dựa trên Mongoose model)
 interface Player {
   _id: string;
   playerName: string;
@@ -115,7 +116,6 @@ const PlayerForm = ({ player, teams, open, onOpenChange, onSuccess }) => {
         isCaptain: player.isCaptain,
       });
     } else {
-      // Reset form for "Add" mode
       setFormData({
         playerName: "",
         image: "",
@@ -151,8 +151,8 @@ const PlayerForm = ({ player, teams, open, onOpenChange, onSuccess }) => {
         await createPlayer(formData);
         toast.success("Cầu thủ đã được tạo thành công!");
       }
-      onSuccess(); // Trigger refetch
-      onOpenChange(false); // Close dialog
+      onSuccess();
+      onOpenChange(false);
     } catch (error) {
       console.error("Failed to save player:", error);
       toast.error(error.response?.data?.message || "Đã xảy ra lỗi.");
@@ -264,6 +264,9 @@ const PlayerForm = ({ player, teams, open, onOpenChange, onSuccess }) => {
 
 // --- COMPONENT CHÍNH CỦA TRANG DASHBOARD ---
 const TablePlayer: React.FC = () => {
+  const location = useLocation(); // Replaces useRouter/useSearchParams for getting current URL
+  const navigate = useNavigate(); // Replaces useRouter.push for navigation
+
   const [players, setPlayers] = useState<Player[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [pagination, setPagination] = useState({
@@ -272,39 +275,54 @@ const TablePlayer: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  // State for dialogs
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [deletingPlayerId, setDeletingPlayerId] = useState<string | null>(null);
   const [activingPlayerId, setActivingPlayerId] = useState<string | null>(null);
-  const fetchPlayersData = useCallback(async (page = 1) => {
-    setLoading(true);
-    try {
-      const response = await getPlayers({ page, limit: 10, status: "all" });
-      setPlayers(response.data.data);
-      setPagination(response.data.pagination);
-    } catch (error) {
-      console.error("Failed to fetch players:", error);
-      toast.error("Không thể tải danh sách cầu thủ.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+
+  // Parse current page from URL's search params
+  const searchParams = new URLSearchParams(location.search);
+  const currentPage = Number(searchParams.get("page")) || 1;
+  const itemsPerPage = 10; // Define your items per page
+
+  const fetchPlayersData = useCallback(
+    async (page: number) => {
+      setLoading(true);
+      try {
+        const response = await getPlayers({
+          page,
+          limit: itemsPerPage,
+          status: "all",
+        });
+        setPlayers(response.data.data);
+        setPagination(response.data.pagination);
+      } catch (error) {
+        console.error("Failed to fetch players:", error);
+        toast.error("Không thể tải danh sách cầu thủ.");
+      } finally {
+        setTimeout(() => setLoading(false), 1000);
+      }
+    },
+    [itemsPerPage]
+  );
 
   useEffect(() => {
-    fetchPlayersData(pagination.currentPage);
-    // Fetch teams for the form
+    fetchPlayersData(currentPage);
+    // Fetch teams for the form (only once)
     getTeams()
       .then((res) => setTeams(res.data.data))
       .catch((err) => console.error(err));
-  }, []);
+  }, [currentPage, fetchPlayersData]); // Re-fetch when currentPage changes
 
   const handlePageChange = (page: number) => {
-    fetchPlayersData(page);
+    // Construct new URLSearchParams based on current location and update 'page'
+    const currentSearchParams = new URLSearchParams(location.search);
+    currentSearchParams.set("page", page.toString());
+    // Navigate to the new URL with updated query params
+    navigate(`${location.pathname}?${currentSearchParams.toString()}`);
   };
 
-  // Handlers for CRUD operations
   const handleAdd = () => {
     setEditingPlayer(null);
     setIsFormOpen(true);
@@ -321,27 +339,26 @@ const TablePlayer: React.FC = () => {
   };
 
   const handleActiveRequest = async (playerId: string) => {
-    setActivingPlayerId(playerId);
-    if (!activingPlayerId) return;
+    // No need for a separate state for activingPlayerId if you're not using an alert for it
     try {
-      await activePlayer(activingPlayerId);
+      await activePlayer(playerId);
       toast.success("Cầu thủ đã được active");
-      fetchPlayersData(pagination.currentPage);
+      fetchPlayersData(currentPage); // Refetch current page
     } catch (error) {
       toast.error("Active thất bại.");
-    } finally {
-      setIsAlertOpen(false);
-      setDeletingPlayerId(null);
+      console.error("Active error:", error);
     }
   };
+
   const confirmDelete = async () => {
     if (!deletingPlayerId) return;
     try {
       await deletePlayer(deletingPlayerId);
       toast.success("Cầu thủ đã được vô hiệu hóa.");
-      fetchPlayersData(pagination.currentPage); // Refetch
+      fetchPlayersData(currentPage); // Refetch current page
     } catch (error) {
       toast.error("Xóa cầu thủ thất bại.");
+      console.error("Delete error:", error);
     } finally {
       setIsAlertOpen(false);
       setDeletingPlayerId(null);
@@ -358,121 +375,130 @@ const TablePlayer: React.FC = () => {
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Cầu thủ</TableHead>
-              <TableHead>Giá</TableHead>
-              <TableHead>Đội</TableHead>
-              <TableHead>Đội trưởng</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>
-                <span className="sr-only">Hành động</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
+      <div className="w-full relative">
+        {loading && (
+          <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10 rounded-md">
+            <Loader className="h-8 w-8 animate-spin text-blue-500" />
+          </div>
+        )}
+        <div className="w-full border overflow-hidden text-sm text-left text-gray-700 bg-white">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  Đang tải dữ liệu...
-                </TableCell>
+                <TableHead>Cầu thủ</TableHead>
+                <TableHead>Giá</TableHead>
+                <TableHead>Đội</TableHead>
+                <TableHead>Đội trưởng</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead>
+                  <span className="sr-only">Hành động</span>
+                </TableHead>
               </TableRow>
-            ) : players.length > 0 ? (
-              players.map((player) => (
-                <TableRow key={player._id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage
-                          src={player.image}
-                          alt={player.playerName}
-                        />
-                        <AvatarFallback>
-                          {player.playerName.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      {player.playerName}
-                    </div>
-                  </TableCell>
-                  <TableCell>{player.cost.toLocaleString()} $</TableCell>
-                  <TableCell>{player.team?.teamName || "N/A"}</TableCell>
-                  <TableCell>
-                    {player.isCaptain ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-slate-400" />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={player.disable ? "danger" : "default"}>
-                      {player.disable ? "Vô hiệu hóa" : "Hoạt động"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Mở menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-white">
-                        <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleEdit(player)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Sửa
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => handleDeleteRequest(player._id)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Disable
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-green-600"
-                          onClick={() => handleActiveRequest(player._id)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Active
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    Đang tải dữ liệu...
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  Không có dữ liệu.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ) : players.length > 0 ? (
+                players.map((player) => (
+                  <TableRow key={player._id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage
+                            src={player.image}
+                            alt={player.playerName}
+                          />
+                          <AvatarFallback>
+                            {player.playerName.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {player.playerName}
+                      </div>
+                    </TableCell>
+                    <TableCell>{player.cost.toLocaleString()} $</TableCell>
+                    <TableCell>{player.team?.teamName || "N/A"}</TableCell>
+                    <TableCell>
+                      {player.isCaptain ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-slate-400" />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={player.disable ? "danger" : "default"}>
+                        {player.disable ? "Vô hiệu hóa" : "Hoạt động"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Mở menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-white">
+                          <DropdownMenuLabel>Hành động</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleEdit(player)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Sửa
+                          </DropdownMenuItem>
+                          {player.disable ? (
+                            <DropdownMenuItem
+                              className="text-green-600"
+                              onClick={() => handleActiveRequest(player._id)}
+                            >
+                              <CheckCircle2 className="mr-2 h-4 w-4" />
+                              Active
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => handleDeleteRequest(player._id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Disable
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    Không có dữ liệu.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="mt-6">
+          <AppPagination
+            pagination={pagination}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
-
-      <div className="mt-6">
-        <AppPagination
-          pagination={pagination}
-          onPageChange={handlePageChange}
-        />
-      </div>
-
-      {/* Dialogs */}
       <PlayerForm
         player={editingPlayer}
         teams={teams}
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
-        onSuccess={() => fetchPlayersData(pagination.currentPage)}
+        onSuccess={() => fetchPlayersData(currentPage)}
       />
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Bạn có chắc chắn muốn vô hiệu hóa?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Hành động này sẽ vô hiệu hóa cầu thủ. Bạn không thể hoàn tác hành
               động này.

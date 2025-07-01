@@ -1,7 +1,8 @@
 // src/pages/admin/TeamManagement.tsx
-"use client"; // Sử dụng cho Next.js App Router
+// Removed "use client" as it's specific to Next.js App Router
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation and useNavigate
 import {
   Table,
   TableBody,
@@ -40,11 +41,11 @@ import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { Badge } from "@components/ui/badge";
-import { MoreHorizontal, PlusCircle, Trash2, Edit } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Trash2, Edit, Loader } from "lucide-react";
 import { toast } from "sonner";
 
 // Import các hàm API cho Team
-import { getTeams, createTeam, updateTeam, deleteTeam } from "@services/api.js"; // Giả sử các hàm này đã được tạo
+import { getTeams, createTeam, updateTeam, deleteTeam } from "@services/api.js";
 import AppPagination from "@pages/Pagination";
 
 // Định nghĩa kiểu dữ liệu cho Đội (dựa trên Mongoose model)
@@ -136,6 +137,9 @@ const TeamForm = ({ team, open, onOpenChange, onSuccess }) => {
 
 // --- COMPONENT CHÍNH CỦA TRANG QUẢN LÝ ĐỘI ---
 const TableTeam: React.FC = () => {
+  const location = useLocation(); // Hook to get current URL location
+  const navigate = useNavigate(); // Hook to programmatically navigate
+
   const [teams, setTeams] = useState<Team[]>([]);
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -149,29 +153,39 @@ const TableTeam: React.FC = () => {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [deletingTeamId, setDeletingTeamId] = useState<string | null>(null);
 
-  const fetchTeamsData = useCallback(async (page = 1) => {
-    console.log(page);
-    setLoading(true);
-    try {
-      // Giả sử getTeams hỗ trợ pagination
-      const response = await getTeams({ page, limit: 10 });
-      setTeams(response.data.data); // Điều chỉnh dựa trên cấu trúc response của bạn
-      setPagination(response.data.pagination);
-    } catch (error) {
-      console.error("Failed to fetch teams:", error);
-      toast.error("Không thể tải danh sách đội.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Get current page from URL query parameter or default to 1
+  const searchParams = new URLSearchParams(location.search);
+  const currentPage = Number(searchParams.get("page")) || 1;
+  const itemsPerPage = 10; // Define your items per page
+
+  const fetchTeamsData = useCallback(
+    async (page: number) => {
+      setLoading(true);
+      try {
+        // Giả sử getTeams hỗ trợ pagination
+        const response = await getTeams({ page, limit: itemsPerPage });
+        setTeams(response.data.data); // Điều chỉnh dựa trên cấu trúc response của bạn
+        setPagination(response.data.pagination);
+      } catch (error) {
+        console.error("Failed to fetch teams:", error);
+        toast.error("Không thể tải danh sách đội.");
+      } finally {
+        setTimeout(() => setLoading(false), 1000);
+      }
+    },
+    [itemsPerPage]
+  );
 
   useEffect(() => {
-    fetchTeamsData(pagination.currentPage);
-  }, []);
+    fetchTeamsData(currentPage);
+  }, [currentPage, fetchTeamsData]); // Re-fetch when currentPage changes
 
   const handlePageChange = (page: number) => {
-    console.log(page);
-    fetchTeamsData(page);
+    // Construct new URLSearchParams based on current location and update 'page'
+    const currentSearchParams = new URLSearchParams(location.search);
+    currentSearchParams.set("page", page.toString());
+    // Navigate to the new URL with updated query params
+    navigate(`${location.pathname}?${currentSearchParams.toString()}`);
   };
 
   // Handlers for CRUD operations
@@ -195,7 +209,7 @@ const TableTeam: React.FC = () => {
     try {
       await deleteTeam(deletingTeamId);
       toast.success("Đội đã được vô hiệu hóa.");
-      fetchTeamsData(pagination.currentPage); // Tải lại dữ liệu
+      fetchTeamsData(currentPage); // Tải lại dữ liệu cho trang hiện tại
     } catch (error) {
       console.error("Failed to delete team:", error);
       toast.error("Vô hiệu hóa đội thất bại.");
@@ -204,10 +218,10 @@ const TableTeam: React.FC = () => {
       setDeletingTeamId(null);
     }
   };
-  useEffect(() => console.log(teams), console.log(pagination), [
-    teams,
-    pagination,
-  ]);
+
+  // Removed the problematic useEffect with console.log
+  // useEffect(() => console.log(teams), console.log(pagination), [teams, pagination]);
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
@@ -218,75 +232,94 @@ const TableTeam: React.FC = () => {
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Tên đội</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>
-                <span className="sr-only">Hành động</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
+      <div className="w-full relative">
+        {" "}
+        {/* Added relative positioning */}
+        {loading && (
+          <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10 rounded-md">
+            <Loader className="h-8 w-8 animate-spin text-blue-500" />
+          </div>
+        )}
+        <div className="w-full border overflow-hidden text-sm text-left text-gray-700 bg-white">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center">
-                  Đang tải dữ liệu...
-                </TableCell>
+                <TableHead>Tên đội</TableHead>
+                <TableHead className="text-center">
+                  {" "}
+                  {/* Centered "Trạng thái" header */}
+                  Trạng thái
+                </TableHead>
+                <TableHead className="text-right">
+                  {" "}
+                  {/* Aligned "Hành động" to the right */}
+                  <span className="sr-only">Hành động</span>
+                </TableHead>
               </TableRow>
-            ) : teams.length > 0 ? (
-              teams.map((team) => (
-                <TableRow key={team._id}>
-                  <TableCell className="font-medium">{team.teamName}</TableCell>
-                  <TableCell>
-                    <Badge variant={team.disable ? "danger" : "default"}>
-                      {team.disable ? "Vô hiệu hóa" : "Hoạt động"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Mở menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-white">
-                        <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleEdit(team)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Sửa
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => handleDeleteRequest(team._id)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Vô hiệu hóa
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+            </TableHeader>
+            <TableBody>
+              {loading ? ( // Show loading state inside table body
+                <TableRow>
+                  <TableCell colSpan={3} className="h-24 text-center">
+                    Đang tải dữ liệu...
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center">
-                  Không có đội nào.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="mt-6">
-        <AppPagination
-          pagination={pagination}
-          onPageChange={handlePageChange}
-        />
+              ) : teams.length > 0 ? (
+                teams.map((team) => (
+                  <TableRow key={team._id}>
+                    <TableCell className="font-medium">
+                      {team.teamName}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {" "}
+                      {/* Centered "Trạng thái" cell content */}
+                      <Badge variant={team.disable ? "danger" : "default"}>
+                        {team.disable ? "Vô hiệu hóa" : "Hoạt động"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Mở menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-white">
+                          <DropdownMenuLabel>Hành động</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleEdit(team)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Sửa
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => handleDeleteRequest(team._id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Vô hiệu hóa
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                // Only show "Không có đội nào" if not loading and no teams
+                <TableRow>
+                  <TableCell colSpan={3} className="h-24 text-center">
+                    Không có đội nào.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="mt-6">
+          <AppPagination
+            pagination={pagination}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
 
       {/* Dialogs */}
@@ -294,7 +327,7 @@ const TableTeam: React.FC = () => {
         team={editingTeam}
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
-        onSuccess={() => fetchTeamsData(pagination.currentPage)}
+        onSuccess={() => fetchTeamsData(currentPage)} // Pass currentPage for refetch
       />
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>

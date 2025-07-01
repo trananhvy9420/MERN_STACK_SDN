@@ -48,13 +48,16 @@ const Header: React.FC = () => {
           {token ? (
             // Nếu có token (đã đăng nhập)
             <>
-              <Button
+              {/* <Button
                 className="font-semibold bg-gradient-to-r from-green-500 to-emerald-400 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out"
                 onClick={() => navigate("/dashboard")}
               >
                 Dashboard
-              </Button>
-              <Button variant="default" onClick={() => navigate("/profile")}>
+              </Button> */}
+              <Button
+                onClick={() => navigate("/profile")}
+                className="font-semibold bg-gradient-to-r from-green-500 to-emerald-400 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out"
+              >
                 <UserPen className="mr-2 h-4 w-4" />
                 Profile
               </Button>
