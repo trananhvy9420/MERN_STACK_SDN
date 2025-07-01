@@ -110,9 +110,15 @@ export const updateProfile = (profileData) => {
 export const updatePassword = (passwordData) => {
   return apiClient.put("/member/updatepassword", passwordData);
 };
-export const getTeams = () => {
-  // Bạn cần tạo endpoint này ở backend
-  return apiClient.get("/team/"); // Giả sử endpoint là '/team/getAll'
+// export const getTeams = () => {
+//   // Bạn cần tạo endpoint này ở backend
+//   return apiClient.get("/team/"); // Giả sử endpoint là '/team/getAll'
+// };
+export const getTeams = (params) => {
+  // Tạo một đối tượng URLSearchParams để dễ dàng xây dựng query string
+  // Nó sẽ tự động bỏ qua các giá trị undefined hoặc null
+  const queryParams = new URLSearchParams(params).toString();
+  return apiClient.get(`/team/?${queryParams}`);
 };
 export const createTeam = (teamData) => {
   return apiClient.post("/team/", teamData);

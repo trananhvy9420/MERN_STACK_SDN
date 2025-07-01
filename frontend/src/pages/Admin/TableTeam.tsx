@@ -150,14 +150,13 @@ const TableTeam: React.FC = () => {
   const [deletingTeamId, setDeletingTeamId] = useState<string | null>(null);
 
   const fetchTeamsData = useCallback(async (page = 1) => {
+    console.log(page);
     setLoading(true);
     try {
       // Giả sử getTeams hỗ trợ pagination
       const response = await getTeams({ page, limit: 10 });
       setTeams(response.data.data); // Điều chỉnh dựa trên cấu trúc response của bạn
-      if (response.data.pagination) {
-        setPagination(response.data.pagination);
-      }
+      setPagination(response.data.pagination);
     } catch (error) {
       console.error("Failed to fetch teams:", error);
       toast.error("Không thể tải danh sách đội.");
@@ -171,6 +170,7 @@ const TableTeam: React.FC = () => {
   }, []);
 
   const handlePageChange = (page: number) => {
+    console.log(page);
     fetchTeamsData(page);
   };
 
@@ -204,7 +204,10 @@ const TableTeam: React.FC = () => {
       setDeletingTeamId(null);
     }
   };
-
+  useEffect(() => console.log(teams), console.log(pagination), [
+    teams,
+    pagination,
+  ]);
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
