@@ -18,6 +18,7 @@ import {
   updateProfile,
   updatePassword,
 } from "../services/api";
+import { toast } from "sonner";
 // ========================================================================
 // PHẦN API - Để khắc phục lỗi import, tôi đã đặt trực tiếp vào đây.
 // Trong dự án thực tế, bạn nên đặt phần này vào file riêng (ví dụ: src/api.js)
@@ -69,6 +70,9 @@ const Profile = () => {
             error.response?.data?.message ||
             "Không thể tải thông tin người dùng.";
           setMessage({ type: "error", text: errorMessage });
+          toast.error("Đăng nhập thất bại", {
+            description: error.response?.data?.message,
+          });
         }
       } finally {
         setIsLoading(false);
@@ -114,9 +118,9 @@ const Profile = () => {
         text: response.data.message || "Cập nhật mật khẩu thành công.",
       });
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Cập nhật mật khẩu thất bại.";
-      setMessage({ type: "error", text: errorMessage });
+      toast.error("Đăng nhập thất bại", {
+        description: error.response?.data?.message,
+      });
     } finally {
       setIsUpdating(false);
     }
