@@ -11,7 +11,7 @@ import Login from "./pages/AuthPage/LoginForm";
 import Register from "./pages/AuthPage/SignUpForm";
 import PlayerDetailPage from "./pages/PlayerDetail";
 import PlayerListPage from "./pages/PlayerListPage";
-import Profile from "./pages/Profile";
+import TeamPage from "./pages/Admin/TeamPage";
 import ProfilePage from "./pages/ProfilePage";
 const queryClient = new QueryClient();
 
@@ -24,6 +24,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/players" element={<PlayerListPage />} />
+          <Route path="/team" element={<TeamPage />} />
           <Route path="/form" element={<Form />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/dashboardadmin" element={<Dashboard />} />

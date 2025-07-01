@@ -59,10 +59,7 @@ export const getPlayerById = (id) => {
 export const getPlayerComments = (playerId) => {
   return apiClient.get(`/player/${playerId}/comment`);
 };
-export const getTeams = () => {
-  // Bạn cần tạo endpoint này ở backend
-  return apiClient.get("/team/"); // Giả sử endpoint là '/team/getAll'
-};
+
 export const createPlayer = (playerData) => {
   return apiClient.post("/player", playerData);
 };
@@ -112,4 +109,17 @@ export const updateProfile = (profileData) => {
  */
 export const updatePassword = (passwordData) => {
   return apiClient.put("/member/updatepassword", passwordData);
+};
+export const getTeams = () => {
+  // Bạn cần tạo endpoint này ở backend
+  return apiClient.get("/team/"); // Giả sử endpoint là '/team/getAll'
+};
+export const createTeam = (teamData) => {
+  return apiClient.post("/team/", teamData);
+};
+export const updateTeam = (teamId, teamData) => {
+  return apiClient.put(`/team/${teamId}`, teamData);
+};
+export const deleteTeam = (teamId) => {
+  return apiClient.delete(`/team/delete/${teamId}`);
 };

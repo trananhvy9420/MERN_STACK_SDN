@@ -66,7 +66,9 @@ const Header: React.FC = () => {
                   >
                     Players
                   </Button>
-                  <Button variant="default">Team</Button>
+                  <Button variant="default" onClick={() => navigate("/team")}>
+                    Team
+                  </Button>
                 </>
               ) : null}
               <Button
