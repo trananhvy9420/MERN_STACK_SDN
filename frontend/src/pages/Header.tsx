@@ -24,6 +24,9 @@ const NavLink = ({
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("access_token");
+  const userString = localStorage.getItem("user");
+  const user = userString ? JSON.parse(userString) : null;
+  console.log(user);
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -51,15 +54,23 @@ const Header: React.FC = () => {
               >
                 Dashboard
               </Button>
-              <Button
-                className="font-semibold  text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out"
-                onClick={() => navigate("/profile")}
-              >
+              <Button variant="default" onClick={() => navigate("/profile")}>
                 <UserPen className="mr-2 h-4 w-4" />
                 Profile
               </Button>
+              {user && user.isAdmin === true ? (
+                <>
+                  <Button
+                    variant="default"
+                    onClick={() => navigate("/dashboardadmin")}
+                  >
+                    Players
+                  </Button>
+                  <Button variant="default">Team</Button>
+                </>
+              ) : null}
               <Button
-                variant="ghost"
+                variant="danger"
                 onClick={() => {
                   localStorage.clear();
                   navigate("/"); // hoặc navigate("/login") tùy logic bạn

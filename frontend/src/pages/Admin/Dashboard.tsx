@@ -1,9 +1,19 @@
 import React from "react";
-
-const Dashboard: React.FC = () => {
+import Header from "../Header";
+import Footer from "../Footer";
+import TablePlayer from "./TablePlayer";
+const Dashboard = () => {
   return (
     <div>
-      <h1>Hello world</h1>
+      <div>
+        <Header />
+      </div>
+      <div>
+        <TablePlayer />
+      </div>
+      <div>
+        <Footer />
+      </div>
     </div>
   );
 };

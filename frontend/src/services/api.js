@@ -64,7 +64,7 @@ export const getTeams = () => {
   return apiClient.get("/team/"); // Giả sử endpoint là '/team/getAll'
 };
 export const createPlayer = (playerData) => {
-  return apiClient.post('/player', playerData);
+  return apiClient.post("/player", playerData);
 };
 
 // Cập nhật cầu thủ
@@ -75,9 +75,9 @@ export const updatePlayer = (playerId, playerData) => {
 // Xóa (vô hiệu hóa) cầu thủ
 export const deletePlayer = (playerId) => {
   return apiClient.delete(`/player/${playerId}/delete`);
-
+};
 /**
- * 
+ *
  * Thêm một bình luận mới cho cầu thủ.
  * @param {string} playerId - ID của cầu thủ.
  * @param {object} commentData - Dữ liệu bình luận, gồm { rating, content }.
