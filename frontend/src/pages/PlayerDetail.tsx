@@ -1,9 +1,15 @@
 // src/pages/PlayerDetailPage.js
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import Header from "../pages/Header";
 import Footer from "../pages/Footer";
-import { getPlayerById, getPlayerComments, addComment } from "../services/api";
+import {
+  getPlayerById,
+  getPlayerComments,
+  addComment,
+  editComment, // Đã import
+  deleteComment, // Đã import
+} from "../services/api";
 
 // --- UI Components ---
 import { Button } from "@components/ui/button";
@@ -38,6 +44,8 @@ import {
   CalendarDays,
   BarChart3,
   Globe,
+  Pencil, // Icon mới
+  Trash2, // Icon mới
 } from "lucide-react";
 
 // --- HELPER COMPONENT: Star Rating Display ---
@@ -54,7 +62,7 @@ const StarRating = ({ rating, className = "" }) => (
   </div>
 );
 
-// --- COMPONENT: Player Info Card ---
+// --- COMPONENT: Player Info Card (Không thay đổi) ---
 const PlayerInfoCard = ({ player }) => (
   <Card className="overflow-hidden shadow-xl border-none rounded-2xl">
     <div className="grid md:grid-cols-12">
@@ -136,7 +144,7 @@ const PlayerInfoCard = ({ player }) => (
   </Card>
 );
 
-// --- COMPONENT: Comment Form ---
+// --- COMPONENT: Comment Form (Không thay đổi) ---
 const CommentForm = ({ onSubmit, isSubmitting, newComment, setNewComment }) => (
   <Card className="shadow-lg rounded-xl">
     <CardHeader>
@@ -162,6 +170,8 @@ const CommentForm = ({ onSubmit, isSubmitting, newComment, setNewComment }) => (
               <SelectValue placeholder="Chọn mức độ đánh giá" />
             </SelectTrigger>
             <SelectContent className="bg-white">
+              <SelectItem value="5">⭐️⭐️⭐️⭐️⭐️ Rất hay</SelectItem>
+              <SelectItem value="4">⭐️⭐️⭐️⭐️ Khá</SelectItem>
               <SelectItem value="3">⭐️⭐️⭐️ Tạm được</SelectItem>
               <SelectItem value="2">⭐️⭐️ Cần cải thiện</SelectItem>
               <SelectItem value="1">⭐️ Yếu</SelectItem>
@@ -195,38 +205,137 @@ const CommentForm = ({ onSubmit, isSubmitting, newComment, setNewComment }) => (
   </Card>
 );
 
-// --- COMPONENT: Comment Item ---
-const CommentItem = ({ comment }) => (
-  <div className="flex items-start gap-4 py-4 border-b last:border-b-0">
-    <Avatar className="h-11 w-11">
-      <AvatarImage src={comment.author?.avatar} />
-      <AvatarFallback>
-        <UserCircle className="text-gray-400 h-6 w-6" />
-      </AvatarFallback>
-    </Avatar>
-    <div className="flex-1">
-      <div className="flex items-center justify-between">
-        <p className="font-semibold text-gray-800">
-          {comment.author?.name || "Người dùng ẩn danh"}
-        </p>
-        <p className="text-xs text-gray-500 flex items-center gap-1.5">
-          <CalendarDays className="h-3.5 w-3.5" />
-          {new Date(comment.createdAt).toLocaleDateString("vi-VN")}
+// --- COMPONENT: Comment Item (Đã cập nhật để có chức năng Sửa/Xóa) ---
+const CommentItem = ({
+  comment,
+  currentUser,
+  editingCommentId,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onDelete,
+}) => {
+  const isAuthor = currentUser && comment.author._id === currentUser?.id;
+  console.log(currentUser.id);
+  console.log(comment.author);
+  const isEditing = editingCommentId === comment._id;
+
+  const [editedContent, setEditedContent] = useState(comment.content);
+  const [editedRating, setEditedRating] = useState(String(comment.rating));
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    if (!editedContent.trim()) {
+      toast.warning("Nội dung bình luận không được để trống.");
+      return;
+    }
+    onSaveEdit(comment._id, {
+      content: editedContent,
+      rating: parseInt(editedRating, 10),
+    });
+  };
+
+  const handleDelete = () => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa bình luận này không?")) {
+      onDelete(comment._id);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <Card className="p-4 border shadow-sm">
+        <form onSubmit={handleSave} className="space-y-3">
+          <Select value={editedRating} onValueChange={setEditedRating}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              <SelectItem value="5">⭐️⭐️⭐️⭐️⭐️ Rất hay</SelectItem>
+              <SelectItem value="4">⭐️⭐️⭐️⭐️ Khá</SelectItem>
+              <SelectItem value="3">⭐️⭐️⭐️ Tạm được</SelectItem>
+              <SelectItem value="2">⭐️⭐️ Cần cải thiện</SelectItem>
+              <SelectItem value="1">⭐️ Yếu</SelectItem>
+            </SelectContent>
+          </Select>
+          <Textarea
+            value={editedContent}
+            onChange={(e) => setEditedContent(e.target.value)}
+            rows={4}
+            className="w-full"
+          />
+          <div className="flex items-center justify-end gap-2 mt-2">
+            <Button type="button" variant="ghost" onClick={onCancelEdit}>
+              Hủy
+            </Button>
+            <Button type="submit">Lưu</Button>
+          </div>
+        </form>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="flex items-start gap-4 py-4 border-b last:border-b-0">
+      <Avatar className="h-11 w-11">
+        <AvatarImage src={comment.author?.avatar} />
+        <AvatarFallback>
+          <UserCircle className="text-gray-400 h-6 w-6" />
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex-1">
+        <div className="flex items-center justify-between">
+          <p className="font-semibold text-gray-800">
+            {comment.author?.name || "Người dùng ẩn danh"}
+          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-gray-500 flex items-center gap-1.5">
+              <CalendarDays className="h-3.5 w-3.5" />
+              {new Date(comment.createdAt).toLocaleDateString("vi-VN")}
+            </p>
+            {isAuthor && (
+              <div className="flex items-center">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => onStartEdit(comment)}
+                >
+                  <Pencil className="h-4 w-4 text-gray-500 hover:text-gray-800" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-4 w-4 text-red-500 hover:text-red-700" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+        <StarRating rating={comment.rating} className="mt-1" />
+        <p className="text-gray-700 mt-2 leading-normal whitespace-pre-wrap">
+          {comment.content}
         </p>
       </div>
-      <StarRating rating={comment.rating} className="mt-1" />
-      <p className="text-gray-700 mt-2 leading-normal">{comment.content}</p>
     </div>
-  </div>
-);
+  );
+};
 
-// --- COMPONENT: Comment Section ---
+// --- COMPONENT: Comment Section (Đã cập nhật để truyền props) ---
 const CommentSection = ({
   comments,
   onCommentSubmit,
   isSubmitting,
   newComment,
   setNewComment,
+  currentUser,
+  editingCommentId,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onDelete,
 }) => (
   <section className="mt-12 md:mt-16">
     <h2 className="text-3xl font-bold mb-6 text-gray-800">
@@ -245,7 +354,16 @@ const CommentSection = ({
         {comments.length > 0 ? (
           <div className="space-y-2">
             {comments.map((comment) => (
-              <CommentItem key={comment._id} comment={comment} />
+              <CommentItem
+                key={comment._id}
+                comment={comment}
+                currentUser={currentUser}
+                editingCommentId={editingCommentId}
+                onStartEdit={onStartEdit}
+                onCancelEdit={onCancelEdit}
+                onSaveEdit={onSaveEdit}
+                onDelete={onDelete}
+              />
             ))}
           </div>
         ) : (
@@ -260,7 +378,7 @@ const CommentSection = ({
   </section>
 );
 
-// --- MAIN PAGE COMPONENT ---
+// --- MAIN PAGE COMPONENT (Đã cập nhật state và handlers) ---
 const PlayerDetailPage = () => {
   const { id } = useParams();
   const [player, setPlayer] = useState(null);
@@ -268,35 +386,56 @@ const PlayerDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newComment, setNewComment] = useState({ rating: "5", content: "" });
-  const isLoggedIn = !!localStorage.getItem("access_token");
-  const user = localStorage.getItem("user");
-  const isAdmin = localStorage.getItem("isAdmin");
-  const fetchData = useCallback(async () => {
-    try {
-      if (!loading) setLoading(true); // Ensure loading is true on re-fetch
-      const playerRes = await getPlayerById(id);
-      setPlayer(playerRes.data.data);
+  const [editingCommentId, setEditingCommentId] = useState(null);
 
-      // Chỉ tải bình luận nếu người dùng đã đăng nhập
-      if (isLoggedIn) {
-        const commentsRes = await getPlayerComments(id);
-        setComments(
-          commentsRes.data.data.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          )
-        );
-      }
+  const isLoggedIn = !!localStorage.getItem("access_token");
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const currentUser = useMemo(() => {
+    const userJson = localStorage.getItem("user");
+    if (!userJson) return null;
+    try {
+      return JSON.parse(userJson);
+    } catch (e) {
+      console.error("Lỗi phân tích cú pháp dữ liệu người dùng:", e);
+      return null;
+    }
+  }, []);
+
+  const fetchComments = useCallback(async () => {
+    if (!isLoggedIn) return;
+    try {
+      const commentsRes = await getPlayerComments(id);
+      setComments(
+        commentsRes.data.data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        )
+      );
+    } catch (error) {
+      console.error("Lỗi khi tải bình luận:", error);
+      toast.error("Không thể tải danh sách bình luận.");
+    }
+  }, [id, isLoggedIn]);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const playerPromise = getPlayerById(id);
+      const commentsPromise = fetchComments(); // Bắt đầu tải song song
+
+      const [playerRes] = await Promise.all([playerPromise, commentsPromise]);
+      setPlayer(playerRes.data.data);
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu chi tiết:", error);
       toast.error("Không thể tải dữ liệu cầu thủ.");
+      setPlayer(null); // Đảm bảo không hiển thị dữ liệu cũ nếu lỗi
     } finally {
       setLoading(false);
     }
-  }, [id, isLoggedIn, loading]);
+  }, [id, fetchComments]);
 
   useEffect(() => {
     fetchData();
-  }, [id, isLoggedIn]); // Re-run effect if id or login status changes
+  }, [fetchData]);
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
@@ -312,12 +451,74 @@ const PlayerDetailPage = () => {
       });
       toast.success("Bình luận của bạn đã được đăng!");
       setNewComment({ rating: "5", content: "" });
-      fetchData(); // Tải lại dữ liệu (chỉ tải lại comment)
+      await fetchComments(); // Chỉ tải lại bình luận
     } catch (error) {
       console.error("Lỗi khi gửi bình luận:", error);
-      toast.error("Không thể gửi bình luận, vui lòng thử lại.");
+      const errorMessage =
+        error.response?.data?.message ||
+        "Không thể gửi bình luận, vui lòng thử lại.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleStartEdit = (comment) => {
+    setEditingCommentId(comment._id);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+  };
+  const handleSaveEdit = async (commentId, data) => {
+    setIsSubmitting(true);
+    try {
+      await editComment(id, commentId, data);
+      toast.success("Bình luận đã được cập nhật.");
+      setEditingCommentId(null);
+      await fetchComments();
+    } catch (error: any) {
+      // Axios error: error.response, error.request, error.message
+      if (error?.response) {
+        const status = error.response.status;
+        const errorData = error.response.data;
+        if (status === 403) {
+          toast.error(
+            errorData.message || "Bạn không có quyền chỉnh sửa bình luận này."
+          );
+        } else if (status === 401) {
+          toast.error(
+            errorData.message || "Bạn cần đăng nhập để thực hiện thao tác này."
+          );
+        } else if (status === 400) {
+          toast.error(
+            errorData.message || "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại."
+          );
+        } else {
+          toast.error(
+            errorData.message || "Đã xảy ra lỗi khi cập nhật bình luận."
+          );
+        }
+      } else if (error?.request) {
+        toast.error(
+          "Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối mạng."
+        );
+      } else {
+        toast.error("Đã xảy ra lỗi không xác định. Vui lòng thử lại.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deleteComment(id, commentId);
+      toast.success("Bình luận đã được xóa.");
+      await fetchComments();
+    } catch (error) {
+      console.error("Lỗi khi xóa bình luận:", error);
+      toast.error("Không thể xóa bình luận.");
     }
   };
 
@@ -333,9 +534,9 @@ const PlayerDetailPage = () => {
             Không tìm thấy cầu thủ bạn yêu cầu.
           </p>
           <Button asChild className="mt-6">
-            <Link to="/">
+            <Link to="/players">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Quay lại
+              Quay lại danh sách
             </Link>
           </Button>
         </main>
@@ -353,21 +554,27 @@ const PlayerDetailPage = () => {
           variant="ghost"
           className="mb-6 text-gray-600 hover:text-gray-900"
         >
-          <Link to="/">
+          <Link to="/players">
             <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại danh sách
           </Link>
         </Button>
 
         <PlayerInfoCard player={player} />
 
-        {/* LOGIC CHÍNH: Chỉ hiển thị phần bình luận nếu đã đăng nhập */}
-        {isLoggedIn && isAdmin === "false" && (
+        {isLoggedIn && !isAdmin && (
           <CommentSection
             comments={comments}
             onCommentSubmit={handleCommentSubmit}
             isSubmitting={isSubmitting}
             newComment={newComment}
             setNewComment={setNewComment}
+            // Props mới cho Sửa/Xóa
+            currentUser={currentUser}
+            editingCommentId={editingCommentId}
+            onStartEdit={handleStartEdit}
+            onCancelEdit={handleCancelEdit}
+            onSaveEdit={handleSaveEdit}
+            onDelete={handleDeleteComment}
           />
         )}
       </main>
@@ -376,7 +583,7 @@ const PlayerDetailPage = () => {
   );
 };
 
-// --- SKELETON COMPONENT (Updated) ---
+// --- SKELETON COMPONENT (Không thay đổi) ---
 const PlayerDetailSkeleton = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">

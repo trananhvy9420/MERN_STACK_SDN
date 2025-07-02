@@ -135,3 +135,9 @@ export const signUp = (userData) => {
 export const signIn = (userData) => {
   return apiClient.post(`/auth/`, userData);
 };
+export const editComment = (playerId, commentId, data) => {
+  return apiClient.post(`/player/${playerId}/${commentId}/editComment`, data);
+};
+export const deleteComment = (playerId, commentId) => {
+  return apiClient.delete(`/player/${playerId}/comments/${commentId}/delete`);
+};
