@@ -564,7 +564,28 @@ const getPlayerStats = async (req, res) => {
       .json({ message: "Server error while fetching player statistics." });
   }
 };
-
+const rating = async (req, res) => {
+  try {
+    const player = await Player.findById(req.params.id);
+    if (!player) {
+      return res.status(404).json({ message: "Không tìm thấy cầu thủ." });
+    }
+    if (player.comments.length === 0) {
+      return res.status(200).json({ averageRating: 0 });
+    }
+    const totalRating = player.comments.reduce(
+      (sum, comment) => sum + comment.rating,
+      0
+    );
+    const averageRating = Math.ceil(totalRating / player.comments.length);
+    res.status(200).json({
+      playerId: player._id,
+      averageRating: averageRating.toFixed(1),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Đã có lỗi xảy ra", error: error.message });
+  }
+};
 module.exports = {
   findAllPlayer,
   foundPlayer,
@@ -580,4 +601,5 @@ module.exports = {
   findAllPlayerInTeam,
   getPlayerStats,
   activePlayer,
+  rating,
 };

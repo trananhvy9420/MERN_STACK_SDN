@@ -168,5 +168,5 @@ playerRoute
 playerRoute
   .route("/stats")
   .get(protectedRoute, isAdmin, playerController.getPlayerStats);
-
+playerRoute.route("/rating/:id").get(playerController.rating);
 module.exports = playerRoute;

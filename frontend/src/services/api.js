@@ -141,3 +141,6 @@ export const editComment = (playerId, commentId, data) => {
 export const deleteComment = (playerId, commentId) => {
   return apiClient.delete(`/player/${playerId}/comments/${commentId}/delete`);
 };
+export const rating = (playerId) => {
+  return apiClient.get(`/player/rating/${playerId}`);
+};

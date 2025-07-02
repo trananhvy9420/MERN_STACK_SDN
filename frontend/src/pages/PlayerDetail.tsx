@@ -7,8 +7,9 @@ import {
   getPlayerById,
   getPlayerComments,
   addComment,
-  editComment, // Đã import
-  deleteComment, // Đã import
+  editComment,
+  deleteComment,
+  rating,
 } from "../services/api";
 
 // --- UI Components ---
@@ -63,7 +64,7 @@ const StarRating = ({ rating, className = "" }) => (
 );
 
 // --- COMPONENT: Player Info Card (Không thay đổi) ---
-const PlayerInfoCard = ({ player }) => (
+const PlayerInfoCard = ({ player, rating }) => (
   <Card className="overflow-hidden shadow-xl border-none rounded-2xl">
     <div className="grid md:grid-cols-12">
       {/* Player Image */}
@@ -126,7 +127,7 @@ const PlayerInfoCard = ({ player }) => (
                 <BarChart3 className="h-6 w-6 text-purple-500" />
                 <div>
                   <p className="text-sm text-gray-500">Đánh giá trung bình</p>
-                  <StarRating rating={Math.round(player.averageRating) || 0} />
+                  <StarRating rating={Math.round(rating) || 0} />
                 </div>
               </div>
             </div>
@@ -170,8 +171,6 @@ const CommentForm = ({ onSubmit, isSubmitting, newComment, setNewComment }) => (
               <SelectValue placeholder="Chọn mức độ đánh giá" />
             </SelectTrigger>
             <SelectContent className="bg-white">
-              <SelectItem value="5">⭐️⭐️⭐️⭐️⭐️ Rất hay</SelectItem>
-              <SelectItem value="4">⭐️⭐️⭐️⭐️ Khá</SelectItem>
               <SelectItem value="3">⭐️⭐️⭐️ Tạm được</SelectItem>
               <SelectItem value="2">⭐️⭐️ Cần cải thiện</SelectItem>
               <SelectItem value="1">⭐️ Yếu</SelectItem>
@@ -387,7 +386,7 @@ const PlayerDetailPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newComment, setNewComment] = useState({ rating: "5", content: "" });
   const [editingCommentId, setEditingCommentId] = useState(null);
-
+  const [ratingNumber, setRatingNumber] = useState(3);
   const isLoggedIn = !!localStorage.getItem("access_token");
   const isAdmin = localStorage.getItem("isAdmin") === "true";
   const currentUser = useMemo(() => {
@@ -421,7 +420,6 @@ const PlayerDetailPage = () => {
     try {
       const playerPromise = getPlayerById(id);
       const commentsPromise = fetchComments(); // Bắt đầu tải song song
-
       const [playerRes] = await Promise.all([playerPromise, commentsPromise]);
       setPlayer(playerRes.data.data);
     } catch (error) {
@@ -432,10 +430,26 @@ const PlayerDetailPage = () => {
       setLoading(false);
     }
   }, [id, fetchComments]);
-
+  const fetchRating = useCallback(async () => {
+    setLoading(true);
+    try {
+      const playerPromise = getPlayerById(id);
+      const [playerRes] = await Promise.all([playerPromise]);
+      console.log("test", playerRes.data.data);
+      console.log("id", playerRes.data.data._id);
+      const response = await rating(playerRes.data.data._id);
+      console.log("rating", response);
+      setRatingNumber(response.data.averageRating);
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu chi tiết:", error);
+      toast.error("Không thể tải dữ liệu cầu thủ.");
+      setRatingNumber(3);
+    }
+  }, []);
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    fetchRating();
+  }, [fetchData, fetchRating]);
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
@@ -559,7 +573,7 @@ const PlayerDetailPage = () => {
           </Link>
         </Button>
 
-        <PlayerInfoCard player={player} />
+        <PlayerInfoCard player={player} rating={ratingNumber} />
 
         {isLoggedIn && !isAdmin && (
           <CommentSection
