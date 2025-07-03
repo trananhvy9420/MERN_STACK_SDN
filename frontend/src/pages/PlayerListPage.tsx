@@ -6,7 +6,7 @@ import { getPlayers, getTeams } from "../services/api";
 import PlayerCard, { PlayerCardSkeleton } from "@pages/PlayerCard";
 import PlayerFilters from "@pages/PlayerFilters";
 import { toast } from "sonner";
-
+import { Loader } from "lucide-react";
 // 1. Import component AppPagination mới của bạn
 import AppPagination from "@pages/Pagination"; // <-- THAY ĐỔI Ở ĐÂY
 
@@ -105,10 +105,8 @@ const PlayerListPage = () => {
       />
 
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <PlayerCardSkeleton key={index} />
-          ))}
+        <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10 rounded-md">
+          <Loader className="h-8 w-8 animate-spin text-blue-500" />
         </div>
       ) : players.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

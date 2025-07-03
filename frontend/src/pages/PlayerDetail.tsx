@@ -548,7 +548,7 @@ const PlayerDetailPage = () => {
             Không tìm thấy cầu thủ bạn yêu cầu.
           </p>
           <Button asChild className="mt-6">
-            <Link to="/players">
+            <Link to="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Quay lại danh sách
             </Link>
@@ -568,7 +568,7 @@ const PlayerDetailPage = () => {
           variant="ghost"
           className="mb-6 text-gray-600 hover:text-gray-900"
         >
-          <Link to="/players">
+          <Link to="/">
             <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại danh sách
           </Link>
         </Button>

@@ -146,7 +146,6 @@ const PlayerFilters: React.FC<PlayerFiltersProps> = ({
         <Button variant="ghost" onClick={handleClearFilters}>
           Xoá bộ lọc
         </Button>
-        <Button>Áp dụng</Button>
       </div>
     </div>
   );

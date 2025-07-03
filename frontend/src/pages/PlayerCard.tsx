@@ -13,8 +13,9 @@ import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
 import { Star, Shield, DollarSign } from "lucide-react"; // Thêm icons
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar"; // Sử dụng Avatar
-
+import { useNavigate } from "react-router-dom";
 const PlayerCard: React.FC = ({ player }: { player: any }) => {
+  const navigate = useNavigate();
   return (
     <Card className="w-[300px] m-4 flex flex-col rounded-2xl shadow-lg bg-white transition-transform duration-300 ease-in-out hover:scale-[1.03] hover:shadow-2xl overflow-hidden">
       <CardHeader className="flex flex-col items-center p-4 text-center">
@@ -24,6 +25,7 @@ const PlayerCard: React.FC = ({ player }: { player: any }) => {
               src={player.image}
               alt={player.playerName}
               className="object-cover"
+              onClick={() => navigate(`/player/${player._id}`)}
             />
             <AvatarFallback>
               <Skeleton className="w-full h-full rounded-full" />

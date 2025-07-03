@@ -216,6 +216,11 @@ const addComment = async (req, res) => {
     if (!player) {
       return res.status(404).json({ message: "Player not found" });
     }
+    if (player.disable) {
+      return res
+        .status(404)
+        .json({ message: "Player is disable so can not comment" });
+    }
     const existingComment = player.comments.find(
       (comment) => comment.author.toString() === authorId.toString()
     );
@@ -351,17 +356,14 @@ const editComment = async (req, res) => {
           "Cầu thủ này đã bị vô hiệu hóa, không thể thực hiện hành động.",
       });
     }
-
     const commentToEdit = player.comments.find(
       (comment) => comment._id.toString() === commentId
     );
-
     if (!commentToEdit) {
       return res
         .status(404)
         .json({ message: "Không tìm thấy bình luận này trong danh sách." });
     }
-
     if (commentToEdit.disable) {
       return res.status(403).json({
         message: "Bình luận này đã bị khóa và không thể chỉnh sửa nữa.",

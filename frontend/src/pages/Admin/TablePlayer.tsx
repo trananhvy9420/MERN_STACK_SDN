@@ -479,9 +479,7 @@ const TablePlayer: React.FC = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={player.disable ? "destructive" : "default"}
-                      >
+                      <Badge variant={player.disable ? "danger" : "default"}>
                         {player.disable ? "Vô hiệu hóa" : "Hoạt động"}
                       </Badge>
                     </TableCell>
