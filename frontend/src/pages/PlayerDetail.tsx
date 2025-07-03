@@ -52,7 +52,7 @@ import {
 // --- HELPER COMPONENT: Star Rating Display ---
 const StarRating = ({ rating, className = "" }) => (
   <div className={`flex items-center gap-0.5 ${className}`}>
-    {[...Array(5)].map((_, i) => (
+    {[...Array(3)].map((_, i) => (
       <Star
         key={i}
         className={`h-4 w-4 ${
@@ -167,13 +167,31 @@ const CommentForm = ({ onSubmit, isSubmitting, newComment, setNewComment }) => (
             }
             disabled={isSubmitting}
           >
-            <SelectTrigger className="!bg-background">
-              <SelectValue placeholder="Chọn mức độ đánh giá" />
+            <SelectTrigger className="bg-white border border-gray-300 rounded-lg shadow-sm px-4 py-2 hover:border-gray-400 focus:ring-2 focus:ring-primary focus:outline-none">
+              <SelectValue placeholder="⭐️ Chọn mức đánh giá" />
             </SelectTrigger>
-            <SelectContent className="bg-white">
-              <SelectItem value="3">⭐️⭐️⭐️ Tạm được</SelectItem>
-              <SelectItem value="2">⭐️⭐️ Cần cải thiện</SelectItem>
-              <SelectItem value="1">⭐️ Yếu</SelectItem>
+            <SelectContent className="bg-white border border-gray-200 rounded-lg shadow-lg">
+              <SelectItem
+                value="3"
+                className="flex items-center gap-2 py-2 px-4 hover:bg-gray-100 cursor-pointer"
+              >
+                <span>⭐️⭐️⭐️</span>
+                <span className="text-sm text-gray-700">Tạm được</span>
+              </SelectItem>
+              <SelectItem
+                value="2"
+                className="flex items-center gap-2 py-2 px-4 hover:bg-gray-100 cursor-pointer"
+              >
+                <span>⭐️⭐️</span>
+                <span className="text-sm text-gray-700">Cần cải thiện</span>
+              </SelectItem>
+              <SelectItem
+                value="1"
+                className="flex items-center gap-2 py-2 px-4 hover:bg-gray-100 cursor-pointer"
+              >
+                <span>⭐️</span>
+                <span className="text-sm text-gray-700">Yếu</span>
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -214,7 +232,7 @@ const CommentItem = ({
   onSaveEdit,
   onDelete,
 }) => {
-  const isAuthor = currentUser && comment.author._id === currentUser?._id;
+  const isAuthor = currentUser && comment.author._id === currentUser?.id;
 
   const isEditing = editingCommentId === comment._id;
 
@@ -381,25 +399,26 @@ const PlayerDetailPage = () => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newComment, setNewComment] = useState({ rating: "5", content: "" });
+  const [newComment, setNewComment] = useState({ rating: "", content: "" });
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [ratingNumber, setRatingNumber] = useState(3);
   const isLoggedIn = !!localStorage.getItem("access_token");
   const isAdmin = localStorage.getItem("isAdmin") === "true";
   const authUser = useAuth();
-  const currentUser = useMemo(() => {
-    const userJson = localStorage.getItem("user");
-    console.log(JSON.stringify(authUser));
-    if (!userJson) {
-      return authUser;
-    }
-    try {
-      return JSON.parse(userJson);
-    } catch (e) {
-      console.error("Lỗi phân tích cú pháp dữ liệu người dùng:", e);
-      return null;
-    }
-  }, [authUser]);
+  const currentUser = useAuth();
+  // const currentUser = useMemo(() => {
+  //   const userJson = localStorage.getItem("user");
+  //   console.log(JSON.stringify(authUser));
+  //   if (!userJson) {
+  //     return authUser;
+  //   }
+  //   try {
+  //     return JSON.parse(userJson);
+  //   } catch (e) {
+  //     console.error("Lỗi phân tích cú pháp dữ liệu người dùng:", e);
+  //     return null;
+  //   }
+  // }, [authUser]);
 
   useEffect(() => {
     console.log(currentUser);

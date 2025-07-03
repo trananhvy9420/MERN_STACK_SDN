@@ -39,7 +39,7 @@ const useAuth = () => {
 
           // Cập nhật state với dữ liệu vừa fetch được
           setCurrentUser(userData);
-
+          console.log(userData);
           // **Quan trọng**: Lưu lại vào localStorage cho những lần sau
           localStorage.setItem("user", JSON.stringify(userData));
         } catch (error) {
