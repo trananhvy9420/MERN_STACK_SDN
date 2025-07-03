@@ -1,8 +1,8 @@
 // src/pages/admin/Dashboard.tsx
-"use client"; // Có thể bỏ nếu bạn chỉ dùng React thuần và không có cấu hình đặc biệt cho Next.js
+"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // Import these hooks
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -36,7 +36,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@components/ui/alert-dialog";
-
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
@@ -60,8 +59,6 @@ import {
   Loader,
 } from "lucide-react";
 import { toast } from "sonner";
-
-// Import các hàm API
 import {
   getPlayers,
   createPlayer,
@@ -71,6 +68,9 @@ import {
   activePlayer,
 } from "@services/api.js";
 import AppPagination from "@pages/Pagination";
+
+// THAY ĐỔI 1: Import component PlayerFilters
+import PlayerFilters from "@pages/PlayerFilters";
 
 interface Player {
   _id: string;
@@ -92,7 +92,7 @@ interface Team {
   teamName: string;
 }
 
-// --- COMPONENT FORM THÊM/SỬA ---
+// --- COMPONENT FORM THÊM/SỬA (GIỮ NGUYÊN) ---
 const PlayerForm = ({ player, teams, open, onOpenChange, onSuccess }) => {
   const isEditMode = !!player;
   const [formData, setFormData] = useState({
@@ -175,6 +175,7 @@ const PlayerForm = ({ player, teams, open, onOpenChange, onSuccess }) => {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+          {/* Các trường input trong form giữ nguyên */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="playerName" className="text-right">
               Tên
@@ -264,65 +265,96 @@ const PlayerForm = ({ player, teams, open, onOpenChange, onSuccess }) => {
 
 // --- COMPONENT CHÍNH CỦA TRANG DASHBOARD ---
 const TablePlayer: React.FC = () => {
-  const location = useLocation(); // Replaces useRouter/useSearchParams for getting current URL
-  const navigate = useNavigate(); // Replaces useRouter.push for navigation
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [teamFilter, setTeamFilter] = useState([]);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
+    totalRecords: 0,
   });
   const [loading, setLoading] = useState(true);
-
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [deletingPlayerId, setDeletingPlayerId] = useState<string | null>(null);
+  // State activingPlayerId được giữ lại nếu bạn có kế hoạch mở rộng
   const [activingPlayerId, setActivingPlayerId] = useState<string | null>(null);
 
-  // Parse current page from URL's search params
+  // THAY ĐỔI 2: Đọc tất cả tham số từ URL
   const searchParams = new URLSearchParams(location.search);
-  const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = 10; // Define your items per page
-
-  const fetchPlayersData = useCallback(
-    async (page: number) => {
-      setLoading(true);
-      try {
-        const response = await getPlayers({
-          page,
-          limit: itemsPerPage,
-          status: "all",
-        });
-        setPlayers(response.data.data);
-        setPagination(response.data.pagination);
-      } catch (error) {
-        console.error("Failed to fetch players:", error);
-        toast.error("Không thể tải danh sách cầu thủ.");
-      } finally {
-        setTimeout(() => setLoading(false), 1000);
-      }
-    },
-    [itemsPerPage]
-  );
-
-  useEffect(() => {
-    fetchPlayersData(currentPage);
-    // Fetch teams for the form (only once)
-    getTeams()
-      .then((res) => setTeams(res.data.data))
-      .catch((err) => console.error(err));
-  }, [currentPage, fetchPlayersData]); // Re-fetch when currentPage changes
-
-  const handlePageChange = (page: number) => {
-    // Construct new URLSearchParams based on current location and update 'page'
-    const currentSearchParams = new URLSearchParams(location.search);
-    currentSearchParams.set("page", page.toString());
-    // Navigate to the new URL with updated query params
-    navigate(`${location.pathname}?${currentSearchParams.toString()}`);
+  const itemsPerPage = 10;
+  const currentFilters = {
+    playerName: searchParams.get("playerName") || "",
+    teamId: searchParams.get("teamId") || "",
+    isCaptain: searchParams.get("isCaptain") || "",
   };
 
+  // THAY ĐỔI 3: Cập nhật hàm fetch để đọc trực tiếp từ URL và không cần tham số
+  const fetchPlayersData = useCallback(async () => {
+    setLoading(true);
+    const currentParams = new URLSearchParams(location.search);
+    const params = {
+      page: currentParams.get("page") || "1",
+      limit: itemsPerPage.toString(),
+      playerName: currentParams.get("playerName") || "",
+      teamId: currentParams.get("teamId") || "",
+      isCaptain: currentParams.get("isCaptain") || "",
+      status: "all",
+    };
+
+    const validParams = Object.fromEntries(
+      Object.entries(params).filter(([_, value]) => value !== "")
+    );
+
+    try {
+      const response = await getPlayers(validParams);
+      setPlayers(response.data.data);
+      setPagination(response.data.pagination);
+    } catch (error) {
+      console.error("Failed to fetch players:", error);
+      toast.error("Không thể tải danh sách cầu thủ.");
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, [itemsPerPage, location.search]); // Phụ thuộc vào location.search
+
+  useEffect(() => {
+    fetchPlayersData();
+  }, [fetchPlayersData]);
+
+  // useEffect(() => {
+  //   getTeams()
+  //     .then((res) => setTeams(res.data.data || []))
+  //     .catch((err) => console.error(err));
+  // }, []);
+
+  // THAY ĐỔI 4: Thêm các hàm xử lý cho bộ lọc
+  const handleFilterChange = (key: string, value: string) => {
+    const newSearchParams = new URLSearchParams(location.search);
+    if (value) {
+      newSearchParams.set(key, value);
+    } else {
+      newSearchParams.delete(key);
+    }
+    newSearchParams.set("page", "1"); // Luôn reset về trang đầu khi filter
+    navigate(`${location.pathname}?${newSearchParams.toString()}`);
+  };
+
+  const handleClearFilters = () => {
+    navigate(location.pathname); // Xóa hết query params
+  };
+
+  const handlePageChange = (page: number) => {
+    const newSearchParams = new URLSearchParams(location.search);
+    newSearchParams.set("page", page.toString());
+    navigate(`${location.pathname}?${newSearchParams.toString()}`);
+  };
+
+  // --- CÁC HÀM XỬ LÝ CŨ GIỮ NGUYÊN ---
   const handleAdd = () => {
     setEditingPlayer(null);
     setIsFormOpen(true);
@@ -339,14 +371,16 @@ const TablePlayer: React.FC = () => {
   };
 
   const handleActiveRequest = async (playerId: string) => {
-    // No need for a separate state for activingPlayerId if you're not using an alert for it
+    setActivingPlayerId(playerId); // Giữ lại logic set state này
     try {
       await activePlayer(playerId);
-      toast.success("Cầu thủ đã được active");
-      fetchPlayersData(currentPage); // Refetch current page
+      toast.success("Cầu thủ đã được kích hoạt lại.");
+      fetchPlayersData(); // THAY ĐỔI 5: Gọi fetch không cần tham số
     } catch (error) {
-      toast.error("Active thất bại.");
+      toast.error("Kích hoạt thất bại.");
       console.error("Active error:", error);
+    } finally {
+      setActivingPlayerId(null);
     }
   };
 
@@ -355,7 +389,7 @@ const TablePlayer: React.FC = () => {
     try {
       await deletePlayer(deletingPlayerId);
       toast.success("Cầu thủ đã được vô hiệu hóa.");
-      fetchPlayersData(currentPage); // Refetch current page
+      fetchPlayersData(); // THAY ĐỔI 5: Gọi fetch không cần tham số
     } catch (error) {
       toast.error("Xóa cầu thủ thất bại.");
       console.error("Delete error:", error);
@@ -364,24 +398,46 @@ const TablePlayer: React.FC = () => {
       setDeletingPlayerId(null);
     }
   };
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const response = await getTeams();
+        console.log(response.data.data);
+        setTeams(response.data.data || []);
+        setTeamFilter(response.data.data || []);
+        console.log(teamFilter);
+      } catch (error) {
+        console.error("Failed to fetch teams:", error);
+        toast.error("Không thể tải danh sách đội.");
+      }
+    };
+    fetchTeams();
+  }, []);
 
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Quản lý Cầu thủ</h1>
         <Button onClick={handleAdd}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Thêm Cầu thủ
+          <PlusCircle className="mr-2 h-4 w-4" /> Thêm Cầu thủ
         </Button>
       </div>
 
-      <div className="w-full relative">
+      {/* THAY ĐỔI 6: Render component PlayerFilters */}
+      <PlayerFilters
+        filters={currentFilters}
+        onFilterChange={handleFilterChange}
+        handleClearFilters={handleClearFilters}
+        teams={teamFilter}
+      />
+
+      <div className="w-full relative mt-4">
         {loading && (
           <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10 rounded-md">
             <Loader className="h-8 w-8 animate-spin text-blue-500" />
           </div>
         )}
-        <div className="w-full border overflow-hidden text-sm text-left text-gray-700 bg-white">
+        <div className="w-full border rounded-lg overflow-hidden text-sm text-left text-gray-700 bg-white">
           <Table>
             <TableHeader>
               <TableRow>
@@ -396,13 +452,7 @@ const TablePlayer: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    Đang tải dữ liệu...
-                  </TableCell>
-                </TableRow>
-              ) : players.length > 0 ? (
+              {!loading && players.length > 0 ? (
                 players.map((player) => (
                   <TableRow key={player._id}>
                     <TableCell className="font-medium">
@@ -429,7 +479,9 @@ const TablePlayer: React.FC = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={player.disable ? "danger" : "default"}>
+                      <Badge
+                        variant={player.disable ? "destructive" : "default"}
+                      >
                         {player.disable ? "Vô hiệu hóa" : "Hoạt động"}
                       </Badge>
                     </TableCell>
@@ -444,24 +496,22 @@ const TablePlayer: React.FC = () => {
                         <DropdownMenuContent align="end" className="bg-white">
                           <DropdownMenuLabel>Hành động</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => handleEdit(player)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Sửa
+                            <Edit className="mr-2 h-4 w-4" /> Sửa
                           </DropdownMenuItem>
                           {player.disable ? (
                             <DropdownMenuItem
-                              className="text-green-600"
+                              className="text-green-600 focus:text-green-700"
                               onClick={() => handleActiveRequest(player._id)}
                             >
-                              <CheckCircle2 className="mr-2 h-4 w-4" />
-                              Active
+                              <CheckCircle2 className="mr-2 h-4 w-4" /> Kích
+                              hoạt
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem
-                              className="text-red-600"
+                              className="text-red-600 focus:text-red-700"
                               onClick={() => handleDeleteRequest(player._id)}
                             >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Disable
+                              <Trash2 className="mr-2 h-4 w-4" /> Vô hiệu hóa
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -472,26 +522,32 @@ const TablePlayer: React.FC = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center">
-                    Không có dữ liệu.
+                    {loading
+                      ? "Đang tải dữ liệu..."
+                      : "Không tìm thấy cầu thủ nào."}
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </div>
-        <div className="mt-6">
-          <AppPagination
-            pagination={pagination}
-            onPageChange={handlePageChange}
-          />
-        </div>
+
+        {!loading && pagination && pagination.totalPages > 1 && (
+          <div className="mt-6 flex justify-center">
+            <AppPagination
+              pagination={pagination}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
       </div>
+
       <PlayerForm
         player={editingPlayer}
         teams={teams}
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
-        onSuccess={() => fetchPlayersData(currentPage)}
+        onSuccess={() => fetchPlayersData()} // THAY ĐỔI 5: Gọi fetch không cần tham số
       />
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
@@ -500,8 +556,8 @@ const TablePlayer: React.FC = () => {
               Bạn có chắc chắn muốn vô hiệu hóa?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ vô hiệu hóa cầu thủ. Bạn không thể hoàn tác hành
-              động này.
+              Hành động này sẽ tạm thời vô hiệu hóa cầu thủ. Bạn có thể kích
+              hoạt lại sau.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

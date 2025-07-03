@@ -20,19 +20,21 @@ import {
 } from "../services/api";
 import { useParams, Link } from "react-router-dom";
 import { toast } from "sonner";
-// ========================================================================
-// PHẦN API - Để khắc phục lỗi import, tôi đã đặt trực tiếp vào đây.
-// Trong dự án thực tế, bạn nên đặt phần này vào file riêng (ví dụ: src/api.js)
-// ========================================================================
-
-// Thay đổi baseURL thành địa chỉ backend của bạn
-
-// ========================================================================
-// KẾT THÚC PHẦN API
-// ========================================================================
-
-// Component chính của trang Profile
+import { useNavigate } from "react-router-dom";
 const Profile = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const userString = localStorage.getItem("user");
+    const user = userString ? JSON.parse(userString) : null;
+    console.log(user);
+
+    // Nếu không có user hoặc không phải admin thì redirect về "/"
+    if (!user) {
+      toast.error("Bạn không được truy cập vô đây ( 403 Forbidden ) ");
+      navigate("/");
+    }
+  }, [navigate]);
+
   const [profile, setProfile] = useState({
     name: "",
     membername: "",
@@ -56,16 +58,16 @@ const Profile = () => {
           console.warn(
             "API connection failed. Using mock data for demonstration."
           );
-          setProfile({
-            name: "Sơn Nguyễn (Demo)",
-            membername: "son_demo",
-            email: "demo@example.com",
-            YOB: "1999-01-01T00:00:00.000Z",
-          });
-          setMessage({
-            type: "error",
-            text: "Không thể kết nối đến máy chủ. Đang hiển thị dữ liệu mẫu.",
-          });
+          // setProfile({
+          //   name: "Sơn Nguyễn (Demo)",
+          //   membername: "son_demo",
+          //   email: "demo@example.com",
+          //   YOB: "1999-01-01T00:00:00.000Z",
+          // });
+          // setMessage({
+          //   type: "error",
+          //   text: "Không thể kết nối đến máy chủ. Đang hiển thị dữ liệu mẫu.",
+          // });
         } else {
           const errorMessage =
             error.response?.data?.message ||

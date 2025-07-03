@@ -88,7 +88,9 @@ const PlayerListPage = () => {
     teamId: searchParams.get("teamId"),
     isCaptain: searchParams.get("isCaptain"),
   };
-
+  const handleClearFilters = () => {
+    setSearchParams({});
+  };
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4 text-slate-800">
@@ -97,6 +99,7 @@ const PlayerListPage = () => {
 
       <PlayerFilters
         filters={currentFilters}
+        handleClearFilters={handleClearFilters}
         onFilterChange={handleFilterChange}
         teams={teams}
       />
