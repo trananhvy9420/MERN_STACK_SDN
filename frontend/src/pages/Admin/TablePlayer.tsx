@@ -65,7 +65,9 @@ import {
   updatePlayer,
   deletePlayer,
   getTeams,
+  getAllTeamNoPaging,
   activePlayer,
+  getActiveTeam,
 } from "@services/api.js";
 import AppPagination from "@pages/Pagination";
 
@@ -401,10 +403,11 @@ const TablePlayer: React.FC = () => {
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const response = await getTeams();
+        const response = await getActiveTeam();
+        const teams = await getAllTeamNoPaging();
         console.log(response.data.data);
         setTeams(response.data.data || []);
-        setTeamFilter(response.data.data || []);
+        setTeamFilter(teams.data.data || []);
         console.log(teamFilter);
       } catch (error) {
         console.error("Failed to fetch teams:", error);

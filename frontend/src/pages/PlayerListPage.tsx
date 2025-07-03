@@ -1,7 +1,7 @@
 // src/pages/PlayerListPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getPlayers, getTeams } from "../services/api";
+import { getPlayers, getTeams, getAllTeamNoPaging } from "../services/api";
 
 import PlayerCard, { PlayerCardSkeleton } from "@pages/PlayerCard";
 import PlayerFilters from "@pages/PlayerFilters";
@@ -56,7 +56,8 @@ const PlayerListPage = () => {
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const response = await getTeams();
+        const response = await getAllTeamNoPaging();
+        console.log(response.data);
         setTeams(response.data.data || []);
       } catch (error) {
         console.error("Failed to fetch teams:", error);

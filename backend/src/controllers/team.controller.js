@@ -6,7 +6,6 @@ const findAllTeam = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-
     const [team, totalRecords] = await Promise.all([
       Team.find().skip(skip).limit(limit),
       Team.countDocuments(),
@@ -33,12 +32,39 @@ const findAllTeam = async (req, res) => {
         totalRecords: totalRecords,
       },
     };
+
     return res.status(200).json(response);
   } catch (error) {
     console.log("Error fetching players:", error);
     return res
       .status(500)
       .json({ message: "Error fetching players from database." });
+  }
+};
+const findAllTeamNoPaging = async (req, res) => {
+  try {
+    const teams = await Team.find();
+    const response = {
+      message: "Successfully fetch team",
+      data: teams,
+    };
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server." });
+  }
+};
+const findAllActiveTeam = async (req, res) => {
+  try {
+    const teams = await Team.find({ disable: false });
+    const response = {
+      message: "Successfully fetch team",
+      data: teams,
+    };
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server." });
   }
 };
 //Create Team
@@ -144,11 +170,38 @@ const deleteTeam = async (req, res) => {
       .json({ message: "An error occurred while disabling the team." });
   }
 };
-
+const activeTeam = async (req, res) => {
+  const id = req.params.teamId;
+  try {
+    const updatedPlayer = await Team.findByIdAndUpdate(
+      id,
+      { disable: false },
+      { new: true }
+    );
+    if (!updatedPlayer) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+    // if (updatedPlayer.disable === false) {
+    //   return res.status(404).json({ message: "Đã active" });
+    // }
+    return res.status(200).json({
+      message: "Team is active successfully",
+      data: updatedPlayer,
+    });
+  } catch (error) {
+    console.error("Error disabling Team: ", error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred while disabling the team." });
+  }
+};
 module.exports = {
   findAllTeam,
   createTeam,
   findByID,
   updateTeam,
   deleteTeam,
+  activeTeam,
+  findAllActiveTeam,
+  findAllTeamNoPaging,
 };

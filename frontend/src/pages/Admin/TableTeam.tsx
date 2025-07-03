@@ -41,11 +41,24 @@ import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { Badge } from "@components/ui/badge";
-import { MoreHorizontal, PlusCircle, Trash2, Edit, Loader } from "lucide-react";
+import {
+  MoreHorizontal,
+  PlusCircle,
+  Trash2,
+  Edit,
+  Loader,
+  CheckCircle2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 // Import các hàm API cho Team
-import { getTeams, createTeam, updateTeam, deleteTeam } from "@services/api.js";
+import {
+  getTeams,
+  createTeam,
+  updateTeam,
+  deleteTeam,
+  activeTeam,
+} from "@services/api.js";
 import AppPagination from "@pages/Pagination";
 
 // Định nghĩa kiểu dữ liệu cho Đội (dựa trên Mongoose model)
@@ -152,32 +165,37 @@ const TableTeam: React.FC = () => {
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [deletingTeamId, setDeletingTeamId] = useState<string | null>(null);
+  const [activingPlayerId, setActivingPlayerId] = useState<string | null>(null);
 
   // Get current page from URL query parameter or default to 1
   const searchParams = new URLSearchParams(location.search);
   const currentPage = Number(searchParams.get("page")) || 1;
   const itemsPerPage = 10; // Define your items per page
 
-  const fetchTeamsData = useCallback(
-    async (page: number) => {
-      setLoading(true);
-      try {
-        // Giả sử getTeams hỗ trợ pagination
-        const response = await getTeams({ page, limit: itemsPerPage });
-        setTeams(response.data.data); // Điều chỉnh dựa trên cấu trúc response của bạn
-        setPagination(response.data.pagination);
-      } catch (error) {
-        console.error("Failed to fetch teams:", error);
-        toast.error("Không thể tải danh sách đội.");
-      } finally {
-        setTimeout(() => setLoading(false), 1000);
-      }
-    },
-    [itemsPerPage]
-  );
+  const fetchTeamsData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const currentParams = new URLSearchParams(location.search);
+      const params = {
+        page: currentParams.get("page") || "1",
+        limit: itemsPerPage.toString(),
+      };
+      const validParams = Object.fromEntries(
+        Object.entries(params).filter(([_, value]) => value !== "")
+      );
+      const response = await getTeams(validParams);
+      setTeams(response.data.data); // Điều chỉnh dựa trên cấu trúc response của bạn
+      setPagination(response.data.pagination);
+    } catch (error) {
+      console.error("Failed to fetch teams:", error);
+      toast.error("Không thể tải danh sách đội.");
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, [itemsPerPage, location.search]);
 
   useEffect(() => {
-    fetchTeamsData(currentPage);
+    fetchTeamsData();
   }, [currentPage, fetchTeamsData]); // Re-fetch when currentPage changes
 
   const handlePageChange = (page: number) => {
@@ -204,12 +222,25 @@ const TableTeam: React.FC = () => {
     setIsAlertOpen(true);
   };
 
+  const handleActiveRequest = async (teamId: string) => {
+    setActivingPlayerId(teamId); // Giữ lại logic set state này
+    try {
+      await activeTeam(teamId);
+      toast.success("Cầu thủ đã được kích hoạt lại.");
+      fetchTeamsData(); // THAY ĐỔI 5: Gọi fetch không cần tham số
+    } catch (error) {
+      toast.error("Kích hoạt thất bại.");
+      console.error("Active error:", error);
+    } finally {
+      setActivingPlayerId(null);
+    }
+  };
   const confirmDelete = async () => {
     if (!deletingTeamId) return;
     try {
       await deleteTeam(deletingTeamId);
       toast.success("Đội đã được vô hiệu hóa.");
-      fetchTeamsData(currentPage); // Tải lại dữ liệu cho trang hiện tại
+      fetchTeamsData();
     } catch (error) {
       console.error("Failed to delete team:", error);
       toast.error("Vô hiệu hóa đội thất bại.");
@@ -291,13 +322,22 @@ const TableTeam: React.FC = () => {
                             <Edit className="mr-2 h-4 w-4" />
                             Sửa
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => handleDeleteRequest(team._id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Vô hiệu hóa
-                          </DropdownMenuItem>
+                          {team.disable ? (
+                            <DropdownMenuItem
+                              className="text-green-600 focus:text-green-700"
+                              onClick={() => handleActiveRequest(team._id)}
+                            >
+                              <CheckCircle2 className="mr-2 h-4 w-4" /> Kích
+                              hoạt
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              className="text-red-600 focus:text-red-700"
+                              onClick={() => handleDeleteRequest(team._id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Vô hiệu hóa
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -327,10 +367,10 @@ const TableTeam: React.FC = () => {
         team={editingTeam}
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
-        onSuccess={() => fetchTeamsData(currentPage)} // Pass currentPage for refetch
+        onSuccess={() => fetchTeamsData()} // Pass currentPage for refetch
       />
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
             <AlertDialogTitle>
               Bạn có chắc chắn muốn vô hiệu hóa đội này?

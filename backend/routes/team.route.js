@@ -11,22 +11,27 @@ const {
   isAdmin,
 } = require("../src/middlewares/validation.middleware");
 
-teamRoute.route("/").get(
-  [
-    query("page")
-      .optional()
-      .isInt({ min: 1 })
-      .withMessage("Page must be a positive number"),
-    query("limit")
-      .optional()
-      .isInt({ min: 1 })
-      .withMessage("Limit must be a positive number"),
-  ],
+teamRoute
+  .route("/")
+  .get(
+    [
+      query("page")
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage("Page must be a positive number"),
+      query("limit")
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage("Limit must be a positive number"),
+    ],
+    validate,
+    teamController.findAllTeam
+  );
 
-  validate,
-  teamController.findAllTeam
-);
-
+teamRoute
+  .route("/activeteam")
+  .get(validate, protectedRoute, isAdmin, teamController.findAllActiveTeam);
+teamRoute.route("/nopaging").get(teamController.findAllTeamNoPaging);
 teamRoute
   .route("/")
   .post(
@@ -80,4 +85,12 @@ teamRoute
     validate,
     teamController.deleteTeam
   );
+teamRoute.route("/:teamId/active").post(
+  [param("teamId").isMongoId().withMessage("Invalid Player ID format.")],
+  validate,
+  protectedRoute,
+  isAdmin,
+
+  teamController.activeTeam
+);
 module.exports = teamRoute;

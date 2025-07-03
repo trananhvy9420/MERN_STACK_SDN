@@ -76,6 +76,9 @@ export const deletePlayer = (playerId) => {
 export const activePlayer = (playerId) => {
   return apiClient.post(`/player/${playerId}/active`);
 };
+export const activeTeam = (teamId) => {
+  return apiClient.post(`/team/${teamId}/active`);
+};
 /**
  *
  * Thêm một bình luận mới cho cầu thủ.
@@ -119,6 +122,12 @@ export const getTeams = (params) => {
   // Nó sẽ tự động bỏ qua các giá trị undefined hoặc null
   const queryParams = new URLSearchParams(params).toString();
   return apiClient.get(`/team/?${queryParams}`);
+};
+export const getActiveTeam = () => {
+  return apiClient.get(`/team/activeteam`);
+};
+export const getAllTeamNoPaging = () => {
+  return apiClient.get(`/team/nopaging`);
 };
 export const createTeam = (teamData) => {
   return apiClient.post("/team/", teamData);
