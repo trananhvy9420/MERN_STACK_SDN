@@ -10,7 +10,6 @@ import PlayerListPage from "./PlayerListPage";
 
 const PlayersPage = () => {
   const [players, setPlayers] = useState([]);
-
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -36,7 +35,27 @@ const PlayersPage = () => {
   const handlePageChange = (newPage) => {
     fetchPlayers(newPage);
   };
+  useEffect(() => {
+    // 1. Dùng URLSearchParams để đọc các tham số từ URL
+    const params = new URLSearchParams(window.location.search);
 
+    // 2. Lấy giá trị của accessToken và refreshToken
+    const accessToken = params.get("accessToken");
+    const refreshToken = params.get("refreshToken");
+
+    // 3. Kiểm tra nếu token tồn tại thì lưu vào localStorage
+    if (accessToken && refreshToken) {
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
+
+      // 4. (Rất quan trọng) Xóa token khỏi thanh địa chỉ URL
+      // để người dùng không nhìn thấy hoặc copy/bookmark nhầm.
+      window.history.replaceState(null, "", window.location.pathname);
+
+      // 5. (Tùy chọn) Điều hướng người dùng đến trang chủ hoặc dashboard
+      // navigate('/');
+    }
+  }, [navigate]);
   return (
     <div className="flex flex-col min-h-screen">
       <Header />

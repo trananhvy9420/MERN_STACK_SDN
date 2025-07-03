@@ -1,6 +1,7 @@
 const Member = require("../models/member");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { query, body, param } = require("express-validator");
 const {
   registerRules,
   validate,
@@ -15,6 +16,21 @@ const fetchUserProfile = async (req, res) => {
     message: "User profile fetched successfully",
     data: userProfile,
   });
+};
+const fetchUserByID = async (req, res) => {
+  try {
+    const user = await Member.findById(req.params.id);
+    const response = {
+      message: "Successfully fetch user with id",
+      data: user,
+    };
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log("Error fetching players:", error);
+    return res
+      .status(500)
+      .json({ message: "Error fetching players from database." });
+  }
 };
 const fetchAllMember = async (req, res) => {
   try {
@@ -103,7 +119,7 @@ const updatePassword = async (req, res) => {
     }
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
-  
+
     member.password = hashedPassword;
     await member.save();
     return res.status(200).json({ message: "Password updated successfully." });
@@ -119,4 +135,5 @@ module.exports = {
   fetchUserProfile,
   updateProfile,
   updatePassword,
+  fetchUserByID,
 };

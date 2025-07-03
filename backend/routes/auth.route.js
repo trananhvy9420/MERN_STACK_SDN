@@ -54,11 +54,14 @@ authRoute.get(
       isAdmin: req.user.isAdmin,
     };
     const { accessToken, refreshToken } = generateTokens(payload);
-    req.session.accessToken = accessToken;
-    req.session.refreshToken = refreshToken;
+
+    const access = encodeURIComponent(accessToken);
+    const refresh = encodeURIComponent(refreshToken);
     // DÒNG THAY ĐỔI DUY NHẤT LÀ ĐÂY
     // Chuyển hướng về trang /auth thay vì /
-    res.redirect("http://localhost:5173/dashboard");
+    res.redirect(
+      `http://localhost:5173/?accessToken=${access}&refreshToken=${refresh}`
+    );
   }
 );
 

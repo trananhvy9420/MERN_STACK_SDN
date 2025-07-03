@@ -48,4 +48,5 @@ memberRoute
     protectedRoute,
     memberController.updatePassword
   );
+memberRoute.route("/:id").post(memberController.fetchUserByID);
 module.exports = memberRoute;

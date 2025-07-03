@@ -11,7 +11,7 @@ import {
   deleteComment,
   rating,
 } from "../services/api";
-
+import useAuth from "@/hooks/useAuth";
 // --- UI Components ---
 import { Button } from "@components/ui/button";
 import {
@@ -214,9 +214,8 @@ const CommentItem = ({
   onSaveEdit,
   onDelete,
 }) => {
-  const isAuthor = currentUser && comment.author._id === currentUser?.id;
-  console.log(currentUser.id);
-  console.log(comment.author);
+  const isAuthor = currentUser && comment.author._id === currentUser?._id;
+
   const isEditing = editingCommentId === comment._id;
 
   const [editedContent, setEditedContent] = useState(comment.content);
@@ -249,8 +248,6 @@ const CommentItem = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-white">
-              <SelectItem value="5">⭐️⭐️⭐️⭐️⭐️ Rất hay</SelectItem>
-              <SelectItem value="4">⭐️⭐️⭐️⭐️ Khá</SelectItem>
               <SelectItem value="3">⭐️⭐️⭐️ Tạm được</SelectItem>
               <SelectItem value="2">⭐️⭐️ Cần cải thiện</SelectItem>
               <SelectItem value="1">⭐️ Yếu</SelectItem>
@@ -389,17 +386,24 @@ const PlayerDetailPage = () => {
   const [ratingNumber, setRatingNumber] = useState(3);
   const isLoggedIn = !!localStorage.getItem("access_token");
   const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const authUser = useAuth();
   const currentUser = useMemo(() => {
     const userJson = localStorage.getItem("user");
-    if (!userJson) return null;
+    console.log(JSON.stringify(authUser));
+    if (!userJson) {
+      return authUser;
+    }
     try {
       return JSON.parse(userJson);
     } catch (e) {
       console.error("Lỗi phân tích cú pháp dữ liệu người dùng:", e);
       return null;
     }
-  }, []);
+  }, [authUser]);
 
+  useEffect(() => {
+    console.log(currentUser);
+  }, [currentUser]);
   const fetchComments = useCallback(async () => {
     if (!isLoggedIn) return;
     try {
@@ -465,7 +469,7 @@ const PlayerDetailPage = () => {
       });
       toast.success("Bình luận của bạn đã được đăng!");
       setNewComment({ rating: "5", content: "" });
-      await fetchComments(); // Chỉ tải lại bình luận
+      await fetchComments();
     } catch (error) {
       console.error("Lỗi khi gửi bình luận:", error);
       const errorMessage =

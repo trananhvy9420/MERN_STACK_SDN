@@ -49,7 +49,6 @@ const validate = (req, res, next) => {
 };
 const protectedRoute = async (req, res, next) => {
   let token;
-
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
