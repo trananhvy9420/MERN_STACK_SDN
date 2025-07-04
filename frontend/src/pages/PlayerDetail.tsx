@@ -232,7 +232,7 @@ const CommentItem = ({
   onSaveEdit,
   onDelete,
 }) => {
-  const isAuthor = currentUser && comment.author._id === currentUser?.id;
+  const isAuthor = currentUser && comment.author?._id === currentUser?.id;
 
   const isEditing = editingCommentId === comment._id;
 
@@ -350,47 +350,52 @@ const CommentSection = ({
   onCancelEdit,
   onSaveEdit,
   onDelete,
-}) => (
-  <section className="mt-12 md:mt-16">
-    <h2 className="text-3xl font-bold mb-6 text-gray-800">
-      Bình luận ({comments.length})
-    </h2>
-    <div className="grid md:grid-cols-12 gap-8 md:gap-12">
-      <div className="md:col-span-5 lg:col-span-4 md:sticky top-24 self-start">
-        <CommentForm
-          onSubmit={onCommentSubmit}
-          isSubmitting={isSubmitting}
-          newComment={newComment}
-          setNewComment={setNewComment}
-        />
-      </div>
-      <div className="md:col-span-7 lg:col-span-8">
-        {comments.length > 0 ? (
-          <div className="space-y-2">
-            {comments.map((comment) => (
-              <CommentItem
-                key={comment._id}
-                comment={comment}
-                currentUser={currentUser}
-                editingCommentId={editingCommentId}
-                onStartEdit={onStartEdit}
-                onCancelEdit={onCancelEdit}
-                onSaveEdit={onSaveEdit}
-                onDelete={onDelete}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16 bg-gray-50 rounded-lg">
-            <p className="text-gray-500">
-              Chưa có bình luận nào. Hãy là người đầu tiên!
-            </p>
+}) => {
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  return (
+    <section className="mt-12 md:mt-16">
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">
+        Bình luận ({comments.length})
+      </h2>
+      <div className="grid md:grid-cols-12 gap-8 md:gap-12">
+        {!isAdmin && (
+          <div className="md:col-span-5 lg:col-span-4 md:sticky top-24 self-start">
+            <CommentForm
+              onSubmit={onCommentSubmit}
+              isSubmitting={isSubmitting}
+              newComment={newComment}
+              setNewComment={setNewComment}
+            />
           </div>
         )}
+        <div className="md:col-span-7 lg:col-span-8">
+          {comments.length > 0 ? (
+            <div className="space-y-2">
+              {comments.map((comment) => (
+                <CommentItem
+                  key={comment._id}
+                  comment={comment}
+                  currentUser={currentUser}
+                  editingCommentId={editingCommentId}
+                  onStartEdit={onStartEdit}
+                  onCancelEdit={onCancelEdit}
+                  onSaveEdit={onSaveEdit}
+                  onDelete={onDelete}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-gray-50 rounded-lg">
+              <p className="text-gray-500">
+                Chưa có bình luận nào. Hãy là người đầu tiên!
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 // --- MAIN PAGE COMPONENT (Đã cập nhật state và handlers) ---
 const PlayerDetailPage = () => {
@@ -404,7 +409,7 @@ const PlayerDetailPage = () => {
   const [ratingNumber, setRatingNumber] = useState(3);
   const isLoggedIn = !!localStorage.getItem("access_token");
   const isAdmin = localStorage.getItem("isAdmin") === "true";
-  const authUser = useAuth();
+
   const currentUser = useAuth();
   // const currentUser = useMemo(() => {
   //   const userJson = localStorage.getItem("user");
@@ -598,7 +603,7 @@ const PlayerDetailPage = () => {
 
         <PlayerInfoCard player={player} rating={ratingNumber} />
 
-        {isLoggedIn && !isAdmin && (
+        {isLoggedIn && (
           <CommentSection
             comments={comments}
             onCommentSubmit={handleCommentSubmit}
